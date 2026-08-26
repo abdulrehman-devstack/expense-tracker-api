@@ -4,7 +4,10 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
+     Column, Date, ForeignKey, Integer, Numeric, String, Text
 )  # MySQL ki datatypes import kiye
+from sqlalchemy.orm import relationship
+
 
 
 class User(Base):  # Python ko bataya ke hum 'User' naam ka table bana rahe hain
@@ -22,3 +25,21 @@ class User(Base):  # Python ko bataya ke hum 'User' naam ka table bana rahe hain
     is_active = Column(
         Boolean, default=True
     )  # Status ke user account active hai ya blocked (True/False)
+    
+    class Expense(Base):
+        __tablename__ = "expenses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    amount = Column(Numeric(10, 2), nullable=False)
+    category = Column(String(50), nullable=False)
+    date = Column(Date, nullable=False)
+    note = Column(Text, nullable=True)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    # Relationship: Har expense kisi na kisi user se linked hoga
+    owner = relationship("User", back_populates="expenses")
+
+
+# User model mein bhi yeh relationship line add kar do:
+# User.expenses = relationship("Expense", back_populates="owner")
