@@ -1,4 +1,5 @@
 import auth
+from auth import get_current_user
 from database import Base, engine ,get_db
 import models
 import schemas
@@ -19,6 +20,12 @@ app.include_router(router)
 @app.get("/")
 def read_root():
     return {"message": "Expense Tracker API is running successfully!"}
+
+@app.get("/expenses/", response_model=list[schemas.ExpenseResponse])
+def get_expenses(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+    return db.query(models.Expense).filter(models.Expense.owner_id == current_user.id).all()
+
+# PUT: Update an existing expense
 
 @router.post(
     "/",
