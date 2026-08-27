@@ -103,5 +103,35 @@ def delete_expense(
     db.commit()
     return None
 
+# 5. GET /expenses/analytics - Expenses Summary & Totals
+@router.get("/analytics", response_model=schemas.AnalyticsResponse)
+def get_expense_analytics(
+    db: Session = Depends(get_db),
+    user_id: int = 1,
+):
+    expenses = db.query(models.Expense).filter(models.Expense.user_id == user_id).all()
+
+    if not expenses:
+        return {
+            "total_spent": 0.0,
+            "total_count": 0,
+            "category_breakdown": {}
+        }
+
+    total_spent = sum(float(getattr(e, "amount", 0)) for e in expenses)
+    total_count = len(expenses)
+
+    category_breakdown: dict[str, float] = {}
+    for e in expenses:
+        cat = str(getattr(e, "category", "Other"))
+        amt = float(getattr(e, "amount", 0))
+        category_breakdown[cat] = category_breakdown.get(cat, 0.0) + amt
+
+    return {
+        "total_spent": total_spent,
+        "total_count": total_count,
+        "category_breakdown": category_breakdown
+    }
+
 app.include_router(auth.router)
 app.include_router(router)
