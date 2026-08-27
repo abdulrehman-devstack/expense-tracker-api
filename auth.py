@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-# Helper Functions: Direct bcrypt use kar rahe hain
+# Helper Functions: Direct Use bcrypt 
 def hash_password(password: str) -> str:
-    # Password ko bytes mein convert karke hash karte hain
+    # To convert password into bytes and write in hash
     pwd_bytes = password.encode("utf-8")
     salt = bcrypt.gensalt()
     hashed = bcrypt.hashpw(pwd_bytes, salt)
@@ -37,7 +37,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     status_code=status.HTTP_201_CREATED,
 )
 def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    # Check karo agar email pehle se exist karti hai
+   #@ check if Email exist
     db_user = (
         db.query(models.User).filter(models.User.email == user.email).first()
     )
@@ -46,7 +46,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
             status_code=400, detail="Email already registered!"
         )
 
-    # Password Hash karo aur Naya User Database mein Save karo
+    # Hash the password nad safe into database
     hashed_pwd = hash_password(user.password)
     new_user = models.User(email=user.email, hashed_password=hashed_pwd)
 

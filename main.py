@@ -1,13 +1,18 @@
 import auth
+import io
 from auth import get_current_user
 from database import Base, engine, get_db
 import models
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import openpyxl
+from fastapi.responses import StreamingResponse
 import schemas
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
 from email_utils import send_budget_alert
 
-# MySQL mein tables generate karne ke liye
+# To Generate table in MySQL
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API")
@@ -21,7 +26,7 @@ budget_router = APIRouter(prefix="/budgets", tags=["Budgets"])
 def read_root():
     return {"message": "Expense Tracker API is running successfully!"}
 
-# 1. EXPENSE ENDPOINTS
+#  EXPENSE ENDPOINTS
 
 @router.get("/", response_model=list[schemas.ExpenseResponse])
 def get_expenses(
@@ -146,7 +151,7 @@ def get_expense_analytics(
     }
 
 
-# 2. INCOME ENDPOINTS
+# INCOME ENDPOINTS
 
 @income_router.get("/", response_model=list[schemas.IncomeResponse])
 def get_incomes(
@@ -169,7 +174,7 @@ def create_income(
     return new_income
 
 
-# 3. BUDGET ENDPOINTS
+# BUDGET ENDPOINTS
 
 @budget_router.post("/", response_model=schemas.BudgetResponse, status_code=status.HTTP_201_CREATED)
 def set_budget(
@@ -202,6 +207,71 @@ def get_budgets(
 ):
     return db.query(models.Budget).filter(models.Budget.user_id == user_id).all()
 
+# 1. PDF Monthly Report Generator (ReportLab)
+@router.get("/report/pdf")
+def export_pdf_report(user_id: int = 1, db: Session = Depends(get_db)):
+    expenses = db.query(models.Expense).filter(models.Expense.user_id == user_id).all()
+    
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    
+    # PDF Content Writing
+    p.drawString(50, height - 50, "Monthly Expense Report")
+    p.drawString(50, height - 70, f"User ID: {user_id}")
+    
+    y = height - 100
+    for exp in expenses:
+        # New page if space runs out
+        if y < 50:  
+            p.showPage()
+            y = height - 50
+        text = f"Category: {getattr(exp, 'category', 'N/A')} | Amount: {getattr(exp, 'amount', 0)} | Date: {getattr(exp, 'date', 'N/A')}"
+        p.drawString(50, y, text)
+        y -= 20
+        
+    p.save()
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer, 
+        media_type="application/pdf", 
+        headers={"Content-Disposition": "attachment; filename=monthly_report.pdf"}
+    )
+
+
+# Excel Monthly Report Exporter (openpyxl)
+@router.get("/report/excel")
+def export_excel_report(user_id: int = 1, db: Session = Depends(get_db)):
+    expenses = db.query(models.Expense).filter(models.Expense.user_id == user_id).all()
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    if ws is not None:
+        ws.title = "Expenses Report"
+        
+        # Header Row
+        ws.append(["ID", "Title", "Amount", "Category", "Date"])
+        
+        # Data Rows
+        for exp in expenses:
+            ws.append([
+                getattr(exp, "id", ""),
+                getattr(exp, "title", ""),
+                getattr(exp, "amount", 0),
+                getattr(exp, "category", ""),
+                str(getattr(exp, "date", ""))
+            ])
+            
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=monthly_report.xlsx"}
+    )
 
 # INCLUDE ROUTERS IN APP (END OF FILE)
 

@@ -10,8 +10,9 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
 
-    # Linking with Expense model
     expenses = relationship("Expense", back_populates="owner")
+    incomes = relationship("Income", back_populates="owner")
+    budgets = relationship("Budget", back_populates="owner")
 
 
 class Expense(Base):
@@ -33,7 +34,7 @@ class Income(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     amount = Column(Numeric(10, 2), nullable=False)
-    source = Column(String(100), nullable=False)  # e.g., Salary, Freelance
+    source = Column(String(100), nullable=False) 
     date = Column(Date, nullable=False)
     note = Column(Text, nullable=True)
 

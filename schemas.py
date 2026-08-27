@@ -12,7 +12,7 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-# 3. User Response Schema (Password wapas nahi bhejte!)
+# 3. User Response Schema (Password does not return)
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
@@ -21,7 +21,7 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# 4. Token Response Schema
+# Token Response Schema
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -33,12 +33,12 @@ class ExpenseBase(BaseModel):
     note: Optional[str] = None
 
 
-# Create Schema (User jab naya expense submit karega)
+# Create Schema 
 class ExpenseCreate(ExpenseBase):
     pass
 
 
-# Response Schema (API jab response mein expense wapas bhejegi)
+# Response Schema (API jab response to return expence
 class ExpenseResponse(ExpenseBase):
     id: int
     user_id: int

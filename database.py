@@ -4,10 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# .env file load karna
+# To reload .env file
 load_dotenv()
 
-# .env se DATABASE_URL read karna
+# To read .env from DATABASE_URL 
 DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:ar4729189@localhost/expense_tracker")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
