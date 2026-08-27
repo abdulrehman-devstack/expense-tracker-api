@@ -14,18 +14,29 @@ router = APIRouter(prefix="/expenses", tags=["Expenses"])
 app = FastAPI(title="Expense Tracker API")
 
 # Authentication Endpoints Include Kar Rahe Hain
-app.include_router(auth.router)
-app.include_router(router)
+
 
 @app.get("/")
 def read_root():
     return {"message": "Expense Tracker API is running successfully!"}
 
-@app.get("/expenses/", response_model=list[schemas.ExpenseResponse])
-def get_expenses(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-    return db.query(models.Expense).filter(models.Expense.owner_id == current_user.id).all()
+# @app.get("/expenses/", response_model=list[schemas.ExpenseResponse])
+# def get_expenses(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
+#     return db.query(models.Expense).filter(models.Expense.owner_id == current_user.id).all()
 
 # PUT: Update an existing expense
+
+# 1. GET /expenses/ - Logged-in user ke tamam expenses fetch karne ke liye
+@router.get("/", response_model=list[schemas.ExpenseResponse])
+def get_expenses(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return (
+        db.query(models.Expense)
+        .filter(models.Expense.user_id == current_user.id)
+        .all()
+    )
 
 @router.post(
     "/",
@@ -91,3 +102,6 @@ def delete_expense(
     expense_query.delete(synchronize_session=False)
     db.commit()
     return None
+
+app.include_router(auth.router)
+app.include_router(router)
