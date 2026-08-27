@@ -1,32 +1,28 @@
 import auth
 from auth import get_current_user
-from database import Base, engine ,get_db
+from database import Base, engine, get_db
 import models
 import schemas
 from sqlalchemy.orm import Session
-from fastapi import FastAPI , APIRouter, Depends, HTTPException, status
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from email_utils import send_budget_alert
 
 # MySQL mein tables generate karne ke liye
 Base.metadata.create_all(bind=engine)
 
-router = APIRouter(prefix="/expenses", tags=["Expenses"])
-
 app = FastAPI(title="Expense Tracker API")
 
-# Authentication Endpoints Include Kar Rahe Hain
-
+# Routers Define
+router = APIRouter(prefix="/expenses", tags=["Expenses"])
+income_router = APIRouter(prefix="/incomes", tags=["Incomes"])
+budget_router = APIRouter(prefix="/budgets", tags=["Budgets"])
 
 @app.get("/")
 def read_root():
     return {"message": "Expense Tracker API is running successfully!"}
 
-# @app.get("/expenses/", response_model=list[schemas.ExpenseResponse])
-# def get_expenses(db: Session = Depends(get_db), current_user: models.User = Depends(get_current_user)):
-#     return db.query(models.Expense).filter(models.Expense.owner_id == current_user.id).all()
+# 1. EXPENSE ENDPOINTS
 
-# PUT: Update an existing expense
-
-# 1. GET /expenses/ - Logged-in user ke tamam expenses fetch karne ke liye
 @router.get("/", response_model=list[schemas.ExpenseResponse])
 def get_expenses(
     db: Session = Depends(get_db),
@@ -38,31 +34,49 @@ def get_expenses(
         .all()
     )
 
-@router.post(
-    "/",
-    response_model=schemas.ExpenseResponse,
-    status_code=status.HTTP_201_CREATED,
-)
+
+@router.post("/", response_model=schemas.ExpenseResponse, status_code=status.HTTP_201_CREATED)
 def create_expense(
     expense: schemas.ExpenseCreate,
-    db: Session = Depends(get_db),
-    # current_user: models.User = Depends(get_current_user) # Pass logged-in user id
-    user_id: int = 1,  # Temporary testing user_id until auth middleware is passed
+    user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
     new_expense = models.Expense(**expense.model_dump(), user_id=user_id)
     db.add(new_expense)
     db.commit()
     db.refresh(new_expense)
+
+    expenses = db.query(models.Expense).filter(
+        models.Expense.user_id == user_id,
+        models.Expense.category == expense.category
+    ).all()
+    
+    total_spent = 0.0
+    for exp in expenses:
+        total_spent += float(getattr(exp, "amount", 0))
+
+    budget = db.query(models.Budget).filter(
+        models.Budget.user_id == user_id,
+        models.Budget.category == expense.category
+    ).first()
+
+    if budget is not None and total_spent > float(getattr(budget, "limit", 0)):
+        send_budget_alert(
+            to_email="abdulrehman.devstack@gmail.com",
+            category=str(expense.category),
+            limit=float(getattr(budget, "limit", 0)),
+            total_spent=total_spent
+        )
+
     return new_expense
 
 
-# 3. PUT /expenses/{expense_id} - Expense Update Karne Ke Liye
 @router.put("/{expense_id}", response_model=schemas.ExpenseResponse)
 def update_expense(
     expense_id: int,
     updated_expense: schemas.ExpenseCreate,
-    db: Session = Depends(get_db),
     user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
     expense_query = db.query(models.Expense).filter(
         models.Expense.id == expense_id, models.Expense.user_id == user_id
@@ -75,18 +89,16 @@ def update_expense(
             detail="Expense nahi mila",
         )
 
-    expense_query.update(
-        dict(updated_expense), synchronize_session=False
-    )  # Direct dict() wrapper
+    expense_query.update(dict(updated_expense), synchronize_session=False)
     db.commit()
     return expense_query.first()
 
-# 4. DELETE /expenses/{expense_id} - Expense Delete Karne Ke Liye
+
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(
     expense_id: int,
-    db: Session = Depends(get_db),
     user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
     expense_query = db.query(models.Expense).filter(
         models.Expense.id == expense_id, models.Expense.user_id == user_id
@@ -103,11 +115,11 @@ def delete_expense(
     db.commit()
     return None
 
-# 5. GET /expenses/analytics - Expenses Summary & Totals
+
 @router.get("/analytics", response_model=schemas.AnalyticsResponse)
 def get_expense_analytics(
-    db: Session = Depends(get_db),
     user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
     expenses = db.query(models.Expense).filter(models.Expense.user_id == user_id).all()
 
@@ -134,28 +146,21 @@ def get_expense_analytics(
     }
 
 
-income_router = APIRouter(prefix="/incomes", tags=["Incomes"])
-
+# 2. INCOME ENDPOINTS
 
 @income_router.get("/", response_model=list[schemas.IncomeResponse])
 def get_incomes(
-    db: Session = Depends(get_db),
     user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
-    return (
-        db.query(models.Income).filter(models.Income.user_id == user_id).all()
-    )
+    return db.query(models.Income).filter(models.Income.user_id == user_id).all()
 
 
-@income_router.post(
-    "/",
-    response_model=schemas.IncomeResponse,
-    status_code=status.HTTP_201_CREATED,
-)
+@income_router.post("/", response_model=schemas.IncomeResponse, status_code=status.HTTP_201_CREATED)
 def create_income(
     income: schemas.IncomeCreate,
-    db: Session = Depends(get_db),
     user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
     new_income = models.Income(**income.model_dump(), user_id=user_id)
     db.add(new_income)
@@ -164,14 +169,13 @@ def create_income(
     return new_income
 
 
-budget_router = APIRouter(prefix="/budgets", tags=["Budgets"])
-
+# 3. BUDGET ENDPOINTS
 
 @budget_router.post("/", response_model=schemas.BudgetResponse, status_code=status.HTTP_201_CREATED)
 def set_budget(
     budget: schemas.BudgetCreate,
-    db: Session = Depends(get_db),
     user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
     existing_budget: models.Budget = db.query(models.Budget).filter(
         models.Budget.user_id == user_id,
@@ -193,17 +197,15 @@ def set_budget(
 
 @budget_router.get("/", response_model=list[schemas.BudgetResponse])
 def get_budgets(
-    db: Session = Depends(get_db),
     user_id: int = 1,
+    db: Session = Depends(get_db)
 ):
     return db.query(models.Budget).filter(models.Budget.user_id == user_id).all()
 
 
-# App router mein include karein:
-app.include_router(budget_router)
+# INCLUDE ROUTERS IN APP (END OF FILE)
 
-
-# Bottom par Router include karein:
-app.include_router(income_router)
 app.include_router(auth.router)
 app.include_router(router)
+app.include_router(income_router)
+app.include_router(budget_router)
