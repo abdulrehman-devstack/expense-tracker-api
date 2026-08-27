@@ -63,4 +63,24 @@ def update_expense(
     db.commit()
     return expense_query.first()
 
+# 4. DELETE /expenses/{expense_id} - Expense Delete Karne Ke Liye
+@router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_expense(
+    expense_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = 1,
+):
+    expense_query = db.query(models.Expense).filter(
+        models.Expense.id == expense_id, models.Expense.user_id == user_id
+    )
+    db_expense = expense_query.first()
 
+    if not db_expense:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Expense nahi mila",
+        )
+
+    expense_query.delete(synchronize_session=False)
+    db.commit()
+    return None
