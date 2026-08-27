@@ -164,6 +164,45 @@ def create_income(
     return new_income
 
 
+budget_router = APIRouter(prefix="/budgets", tags=["Budgets"])
+
+
+@budget_router.post("/", response_model=schemas.BudgetResponse, status_code=status.HTTP_201_CREATED)
+def set_budget(
+    budget: schemas.BudgetCreate,
+    db: Session = Depends(get_db),
+    user_id: int = 1,
+):
+    existing_budget: models.Budget = db.query(models.Budget).filter(
+        models.Budget.user_id == user_id,
+        models.Budget.category == budget.category
+    ).first()
+
+    if existing_budget:
+        existing_budget.limit = budget.monthly_limit
+        db.commit()
+        db.refresh(existing_budget)
+        return existing_budget
+
+    new_budget = models.Budget(**budget.model_dump(), user_id=user_id)
+    db.add(new_budget)
+    db.commit()
+    db.refresh(new_budget)
+    return new_budget
+
+
+@budget_router.get("/", response_model=list[schemas.BudgetResponse])
+def get_budgets(
+    db: Session = Depends(get_db),
+    user_id: int = 1,
+):
+    return db.query(models.Budget).filter(models.Budget.user_id == user_id).all()
+
+
+# App router mein include karein:
+app.include_router(budget_router)
+
+
 # Bottom par Router include karein:
 app.include_router(income_router)
 app.include_router(auth.router)

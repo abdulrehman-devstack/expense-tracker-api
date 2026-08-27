@@ -8,10 +8,8 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 # .env se DATABASE_URL read karna
-DATABASE_URL = os.getenv("mysql+pymysql://root:ar4729189@localhost/expense_tracker")
-
-# MySQL Connection Engine
-engine = create_engine("mysql+pymysql://root:ar4729189@localhost/expense_tracker", pool_pre_ping=True)
+DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:ar4729189@localhost/expense_tracker")
+engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 # Database Session Factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

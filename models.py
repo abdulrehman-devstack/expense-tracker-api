@@ -40,3 +40,14 @@ class Income(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     owner = relationship("User", back_populates="incomes")
+    
+class Budget(Base):
+    __tablename__ = "budgets"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category = Column(String(50), nullable=False)
+    monthly_limit = Column(Numeric(10, 2), nullable=False)
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    owner = relationship("User", back_populates="budgets")

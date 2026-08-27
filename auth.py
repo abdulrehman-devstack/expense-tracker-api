@@ -16,6 +16,13 @@ def hash_password(password: str) -> str:
     hashed = bcrypt.hashpw(pwd_bytes, salt)
     return hashed.decode("utf-8")
 
+# Temporary Helper for Testing
+def get_current_user(db: Session = Depends(get_db)):
+    user = db.query(models.User).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="No user found in DB. Please register a user first.")
+    return user
+
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     pwd_bytes = plain_password.encode("utf-8")

@@ -70,3 +70,19 @@ class IncomeResponse(IncomeBase):
 
     class Config:
         from_attributes = True
+        
+class BudgetBase(BaseModel):
+    category: str
+    monthly_limit: float = Field(..., gt=0, description="Budget limit must be greater than zero")
+
+
+class BudgetCreate(BudgetBase):
+    pass
+
+
+class BudgetResponse(BudgetBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
