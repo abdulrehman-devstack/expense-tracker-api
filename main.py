@@ -133,5 +133,38 @@ def get_expense_analytics(
         "category_breakdown": category_breakdown
     }
 
+
+income_router = APIRouter(prefix="/incomes", tags=["Incomes"])
+
+
+@income_router.get("/", response_model=list[schemas.IncomeResponse])
+def get_incomes(
+    db: Session = Depends(get_db),
+    user_id: int = 1,
+):
+    return (
+        db.query(models.Income).filter(models.Income.user_id == user_id).all()
+    )
+
+
+@income_router.post(
+    "/",
+    response_model=schemas.IncomeResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_income(
+    income: schemas.IncomeCreate,
+    db: Session = Depends(get_db),
+    user_id: int = 1,
+):
+    new_income = models.Income(**income.model_dump(), user_id=user_id)
+    db.add(new_income)
+    db.commit()
+    db.refresh(new_income)
+    return new_income
+
+
+# Bottom par Router include karein:
+app.include_router(income_router)
 app.include_router(auth.router)
 app.include_router(router)

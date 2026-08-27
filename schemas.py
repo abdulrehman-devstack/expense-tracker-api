@@ -16,7 +16,7 @@ class UserLogin(BaseModel):
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
-    is_active: bool
+    # is_active: bool
 
     class Config:
         from_attributes = True
@@ -40,6 +40,31 @@ class ExpenseCreate(ExpenseBase):
 
 # Response Schema (API jab response mein expense wapas bhejegi)
 class ExpenseResponse(ExpenseBase):
+    id: int
+    user_id: int
+
+    class Config:
+        from_attributes = True
+        
+# Analytics / Summary Response Schema
+class AnalyticsResponse(BaseModel):
+    total_spent: float
+    total_count: int
+    category_breakdown: dict[str, float]
+    
+    
+class IncomeBase(BaseModel):
+    amount: float = Field(..., gt=0, description="Amount must be positive")
+    source: str
+    date: date
+    note: Optional[str] = None
+
+
+class IncomeCreate(IncomeBase):
+    pass
+
+
+class IncomeResponse(IncomeBase):
     id: int
     user_id: int
 
