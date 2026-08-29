@@ -16,7 +16,7 @@
 
 ---
 
-## 1. Table of Contents
+ 1. Table of Contents
 - [Table of Contents](#1-table-of-contents)
 - [About the Project](#2-about-the-project)
 - [Features](#3-features)
@@ -30,12 +30,12 @@
 
 ---
 
-## 2. About the Project
+ 2. About the Project
 Managing personal finances effectively can be challenging. The **Expense Tracker API** is a secure, fast, and reliable backend system designed to record, monitor, and analyze daily spending habits. It includes built-in automated email notifications to alert users when they exceed their predefined category budgets.
 
 ---
 
-## 3. Features
+ 3. Features
 - **User Authentication & Authorization**: Secure signup, login, and token validation workflows.
 - **Expense Management**: Full CRUD operations for tracking daily individual expenses.
 - **Budget Tracking & Email Alerts**: Automated SMTP email notifications triggered when spending limits are crossed.
@@ -44,7 +44,7 @@ Managing personal finances effectively can be challenging. The **Expense Tracker
 
 ---
 
-## 4. Tech Stack
+ 4. Tech Stack
 <p>
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
@@ -55,7 +55,7 @@ Managing personal finances effectively can be challenging. The **Expense Tracker
 
 ---
 
-## 5. Installation
+ 5. Installation
 Follow these steps to set up and run the project locally:
 
 ```bash
