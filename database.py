@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 load_dotenv()
 
 # To read .env from DATABASE_URL 
-DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://root:ar4729189@localhost/expense_tracker")
+DATABASE_URL = os.getenv("DATABASE_URL", "......")
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 
 # Database Session Factory
