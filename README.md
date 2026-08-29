@@ -3,7 +3,7 @@
 # Expense Tracker API
 *A robust, feature-rich RESTful backend for personal finance and automated alerts.*
 
-![Banner](banner.png)
+![Banner](blob:https://gemini.google.com/43857a79-733a-4a23-afbb-09bfcd5d0909)
 
 <p>
   <img src="https://img.shields.io/badge/Build-Passing-brightgreen?style=flat-square" alt="Build Status">
