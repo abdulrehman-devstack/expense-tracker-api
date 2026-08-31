@@ -2,15 +2,15 @@ import smtplib
 import os
 from email.message import EmailMessage
 
-SENDER_EMAIL = os.getenv("SENDER_EMAIL")
-SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")  # Google App Password
+
+SENDER_EMAIL= "your email_email@gmail.com"
+SENDER_PASSWORD= "your password"  # Google App Password
 
 def send_budget_alert(to_email: str, category: str, limit: float, total_spent: float):
     msg = EmailMessage()
     msg['Subject'] = f"🚨 Budget Alert: Exceeded limit for {category}!"
     msg['From'] = SENDER_EMAIL
     msg['To'] = to_email
-
     content = f"""
     Hi there,
 
