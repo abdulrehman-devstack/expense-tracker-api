@@ -19,14 +19,13 @@ class Expense(Base):
     __tablename__ = "expenses"
 
     id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(100), nullable=False, default="Untitled") # <--- Yeh line add karo
     amount = Column(Numeric(10, 2), nullable=False)
     category = Column(String(50), nullable=False)
     date = Column(Date, nullable=False)
     note = Column(Text, nullable=True)
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-
-    # Linking with User model
     owner = relationship("User", back_populates="expenses")
     
 class Income(Base):

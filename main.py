@@ -10,12 +10,21 @@ from fastapi.responses import StreamingResponse
 import schemas
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from email_utils import send_budget_alert
 
 # To Generate table in MySQL
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specify your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Routers Define
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
@@ -102,13 +111,10 @@ def update_expense(
 @router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_expense(
     expense_id: int,
-    user_id: int = 1,
+    income_id: int,
     db: Session = Depends(get_db)
 ):
-    expense_query = db.query(models.Expense).filter(
-        models.Expense.id == expense_id, models.Expense.user_id == user_id
-    )
-    db_expense = expense_query.first()
+    db_expense = db.query(models.Expense).filter(models.Expense.id == expense_id).first()
 
     if not db_expense:
         raise HTTPException(
@@ -116,7 +122,7 @@ def delete_expense(
             detail="Expense nahi mila",
         )
 
-    expense_query.delete(synchronize_session=False)
+    db.delete(db_expense)
     db.commit()
     return None
 
