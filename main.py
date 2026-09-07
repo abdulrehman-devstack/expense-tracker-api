@@ -281,6 +281,10 @@ def export_excel_report(user_id: int = 1, db: Session = Depends(get_db)):
 
 # INCLUDE ROUTERS IN APP (END OF FILE)
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app",host="127.0.0.1",port=8001 , reload=True)
+
 app.include_router(auth.router)
 app.include_router(router)
 app.include_router(income_router)
