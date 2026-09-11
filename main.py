@@ -13,20 +13,18 @@ from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from email_utils import send_budget_alert
 
-# To Generate table in MySQL
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Or specify your frontend origin
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Routers Define
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 income_router = APIRouter(prefix="/incomes", tags=["Incomes"])
 budget_router = APIRouter(prefix="/budgets", tags=["Budgets"])
@@ -35,7 +33,6 @@ budget_router = APIRouter(prefix="/budgets", tags=["Budgets"])
 def read_root():
     return {"message": "Expense Tracker API is running successfully!"}
 
-#  EXPENSE ENDPOINTS
 
 @router.get("/", response_model=list[schemas.ExpenseResponse])
 def get_expenses(

@@ -2,17 +2,14 @@ from datetime import datetime,date
 from typing import Optional
 from pydantic import BaseModel, EmailStr ,Field
 
-# 1. Signup / User Creation Schema
 class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
-# 2. Login Request Schema
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-# 3. User Response Schema (Password does not return)
 class UserResponse(BaseModel):
     id: int
     email: EmailStr
@@ -21,7 +18,6 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# Token Response Schema
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -33,12 +29,10 @@ class ExpenseBase(BaseModel):
     note: Optional[str] = None
 
 
-# Create Schema 
 class ExpenseCreate(ExpenseBase):
     pass
 
 
-# Response Schema (API jab response to return expence
 class ExpenseResponse(ExpenseBase):
     id: int
     user_id: int
@@ -46,7 +40,6 @@ class ExpenseResponse(ExpenseBase):
     class Config:
         from_attributes = True
         
-# Analytics / Summary Response Schema
 class AnalyticsResponse(BaseModel):
     total_spent: float
     total_count: int

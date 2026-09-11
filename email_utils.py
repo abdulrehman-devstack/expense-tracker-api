@@ -4,7 +4,7 @@ from email.message import EmailMessage
 
 
 SENDER_EMAIL= "your email_email@gmail.com"
-SENDER_PASSWORD= "your password"  # Google App Password
+SENDER_PASSWORD= "your password" 
 
 def send_budget_alert(to_email: str, category: str, limit: float, total_spent: float):
     msg = EmailMessage()
