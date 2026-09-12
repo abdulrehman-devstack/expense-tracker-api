@@ -87,6 +87,7 @@ expense-tracker-api/
 ├── auth.py              # Authentication logic & token handling
 ├── database.py          # Database connection & session setup
 ├── email_utils.py       # SMTP email alert functions
+├── HTML file            # For UI design
 ├── main.py              # FastAPI app initialization & routing
 ├── models.py            # SQLAlchemy database models
 ├── schemas.py           # Pydantic data validation schemas
