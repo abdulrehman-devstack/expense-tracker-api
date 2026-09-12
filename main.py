@@ -1,288 +1,190 @@
-import auth
-import io
-from auth import get_current_user
-from database import Base, engine, get_db
-import models
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-import openpyxl
-from fastapi.responses import StreamingResponse
-import schemas
-from sqlalchemy.orm import Session
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional, List
+from datetime import date
+from sqlalchemy.orm import Session
+from database import get_db
+from models import Expense, Income, Budget ,User
 from email_utils import send_budget_alert
+from sqlalchemy import func
 
-Base.metadata.create_all(bind=engine)
-
-app = FastAPI(title="Expense Tracker API")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-router = APIRouter(prefix="/expenses", tags=["Expenses"])
-income_router = APIRouter(prefix="/incomes", tags=["Incomes"])
-budget_router = APIRouter(prefix="/budgets", tags=["Budgets"])
+# Pydantic Schemas
+class ExpenseSchema(BaseModel):
+    title: str
+    amount: float
+    category: str
+    date: date
+    note: Optional[str] = None
 
-@app.get("/")
-def read_root():
-    return {"message": "Expense Tracker API is running successfully!"}
+class IncomeSchema(BaseModel):
+    source: str
+    amount: float
+    date: date
+    note: Optional[str] = None
+
+class BudgetSchema(BaseModel):
+    category: str
+    monthly_limit: float
 
 
-@router.get("/", response_model=list[schemas.ExpenseResponse])
-def get_expenses(
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user),
-):
-    return (
-        db.query(models.Expense)
-        .filter(models.Expense.user_id == current_user.id)
-        .all()
+# ============ EXPENSES ENDPOINTS ============
+@app.get("/expenses/")
+def get_expenses(user_id: int, db: Session = Depends(get_db)):
+    return db.query(Expense).filter(Expense.user_id == user_id).all()
+
+@app.post("/expenses/")
+def create_expense(user_id: int, expense: ExpenseSchema, db: Session = Depends(get_db)):
+    # 1. Expense ko database mein save karein
+    new_expense = Expense(
+        title=expense.title,
+        amount=expense.amount,
+        category=expense.category,
+        date=expense.date,
+        note=expense.note,
+        user_id=user_id
     )
-
-
-@router.post("/", response_model=schemas.ExpenseResponse, status_code=status.HTTP_201_CREATED)
-def create_expense(
-    expense: schemas.ExpenseCreate,
-    user_id: int = 1,
-    db: Session = Depends(get_db)
-):
-    new_expense = models.Expense(**expense.model_dump(), user_id=user_id)
     db.add(new_expense)
     db.commit()
     db.refresh(new_expense)
 
-    expenses = db.query(models.Expense).filter(
-        models.Expense.user_id == user_id,
-        models.Expense.category == expense.category
-    ).all()
-    
-    total_spent = 0.0
-    for exp in expenses:
-        total_spent += float(getattr(exp, "amount", 0))
-
-    budget = db.query(models.Budget).filter(
-        models.Budget.user_id == user_id,
-        models.Budget.category == expense.category
+    # 2. Check karein ke is category ka koi budget set hai ya nahi
+    budget = db.query(Budget).filter(
+        Budget.user_id == user_id,
+        Budget.category == expense.category
     ).first()
 
-    if budget is not None and total_spent > float(getattr(budget, "limit", 0)):
-        send_budget_alert(
-            to_email="abdulrehman.devstack@gmail.com",
-            category=str(expense.category),
-            limit=float(getattr(budget, "limit", 0)),
-            total_spent=total_spent
-        )
+    if budget:
+        # 3. Is category ka total kharcha (spent) nikal lein
+        total_spent = db.query(func.sum(Expense.amount)).filter(
+            Expense.user_id == user_id,
+            Expense.category == expense.category
+        ).scalar() or 0.0
+
+        # 4. Agar total spent budget limit se barh gaya hai toh email alert bhej dein
+        if total_spent > float(budget.monthly_limit):
+            user = db.query(User).filter(User.id == user_id).first()
+            if user and user.email:
+                send_budget_alert(
+                    to_email=user.email,
+                    category=expense.category,
+                    limit=float(budget.monthly_limit),
+                    total_spent=float(total_spent)
+                )
 
     return new_expense
 
-
-@router.put("/{expense_id}", response_model=schemas.ExpenseResponse)
-def update_expense(
-    expense_id: int,
-    updated_expense: schemas.ExpenseCreate,
-    user_id: int = 1,
-    db: Session = Depends(get_db)
-):
-    expense_query = db.query(models.Expense).filter(
-        models.Expense.id == expense_id, models.Expense.user_id == user_id
-    )
-    db_expense = expense_query.first()
-
+@app.put("/expenses/{expense_id}")
+def update_expense(expense_id: int, user_id: int, expense: ExpenseSchema, db: Session = Depends(get_db)):
+    db_expense = db.query(Expense).filter(Expense.id == expense_id, Expense.user_id == user_id).first()
     if not db_expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Expense nahi mila",
-        )
-
-    expense_query.update(dict(updated_expense), synchronize_session=False)
+        raise HTTPException(status_code=404, detail="Expense not found")
+    
+    db_expense.title = expense.title
+    db_expense.amount = expense.amount
+    db_expense.category = expense.category
+    db_expense.date = expense.date
+    db_expense.note = expense.note
     db.commit()
-    return expense_query.first()
+    db.refresh(db_expense)
+    return db_expense
 
-
-@router.delete("/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_expense(
-    expense_id: int,
-    income_id: int,
-    db: Session = Depends(get_db)
-):
-    db_expense = db.query(models.Expense).filter(models.Expense.id == expense_id).first()
-
+@app.delete("/expenses/{expense_id}")
+def delete_expense(expense_id: int, db: Session = Depends(get_db)):
+    db_expense = db.query(Expense).filter(Expense.id == expense_id).first()
     if not db_expense:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Expense nahi mila",
-        )
-
+        raise HTTPException(status_code=404, detail="Expense not found")
     db.delete(db_expense)
     db.commit()
-    return None
+    return {"message": "Deleted successfully"}
 
 
-@router.get("/analytics", response_model=schemas.AnalyticsResponse)
-def get_expense_analytics(
-    user_id: int = 1,
-    db: Session = Depends(get_db)
-):
-    expenses = db.query(models.Expense).filter(models.Expense.user_id == user_id).all()
+# ============ INCOMES ENDPOINTS ============
+@app.get("/incomes/")
+def get_incomes(user_id: int, db: Session = Depends(get_db)):
+    return db.query(Income).filter(Income.user_id == user_id).all()
 
-    if not expenses:
-        return {
-            "total_spent": 0.0,
-            "total_count": 0,
-            "category_breakdown": {}
-        }
-
-    total_spent = sum(float(getattr(e, "amount", 0)) for e in expenses)
-    total_count = len(expenses)
-
-    category_breakdown: dict[str, float] = {}
-    for e in expenses:
-        cat = str(getattr(e, "category", "Other"))
-        amt = float(getattr(e, "amount", 0))
-        category_breakdown[cat] = category_breakdown.get(cat, 0.0) + amt
-
-    return {
-        "total_spent": total_spent,
-        "total_count": total_count,
-        "category_breakdown": category_breakdown
-    }
-
-
-# INCOME ENDPOINTS
-
-@income_router.get("/", response_model=list[schemas.IncomeResponse])
-def get_incomes(
-    user_id: int = 1,
-    db: Session = Depends(get_db)
-):
-    return db.query(models.Income).filter(models.Income.user_id == user_id).all()
-
-
-@income_router.post("/", response_model=schemas.IncomeResponse, status_code=status.HTTP_201_CREATED)
-def create_income(
-    income: schemas.IncomeCreate,
-    user_id: int = 1,
-    db: Session = Depends(get_db)
-):
-    new_income = models.Income(**income.model_dump(), user_id=user_id)
+@app.post("/incomes/")
+def create_income(user_id: int, income: IncomeSchema, db: Session = Depends(get_db)):
+    new_income = Income(
+        source=income.source,
+        amount=income.amount,
+        date=income.date,
+        note=income.note,
+        user_id=user_id
+    )
     db.add(new_income)
     db.commit()
     db.refresh(new_income)
     return new_income
 
+@app.put("/incomes/{income_id}")
+def update_income(income_id: int, user_id: int, income: IncomeSchema, db: Session = Depends(get_db)):
+    db_income = db.query(Income).filter(Income.id == income_id, Income.user_id == user_id).first()
+    if not db_income:
+        raise HTTPException(status_code=404, detail="Income not found")
+    
+    db_income.source = income.source
+    db_income.amount = income.amount
+    db_income.date = income.date
+    db_income.note = income.note
+    db.commit()
+    db.refresh(db_income)
+    return db_income
 
-# BUDGET ENDPOINTS
+@app.delete("/incomes/{income_id}")
+def delete_income(income_id: int, db: Session = Depends(get_db)):
+    db_income = db.query(Income).filter(Income.id == income_id).first()
+    if not db_income:
+        raise HTTPException(status_code=404, detail="Income not found")
+    db.delete(db_income)
+    db.commit()
+    return {"message": "Deleted successfully"}
 
-@budget_router.post("/", response_model=schemas.BudgetResponse, status_code=status.HTTP_201_CREATED)
-def set_budget(
-    budget: schemas.BudgetCreate,
-    user_id: int = 1,
-    db: Session = Depends(get_db)
-):
-    existing_budget: models.Budget = db.query(models.Budget).filter(
-        models.Budget.user_id == user_id,
-        models.Budget.category == budget.category
+
+# ============ BUDGETS ENDPOINTS ============
+@app.get("/budgets/")
+def get_budgets(user_id: int, db: Session = Depends(get_db)):
+    return db.query(Budget).filter(Budget.user_id == user_id).all()
+
+@app.post("/budgets/")
+def create_or_update_budget(user_id: int, budget: BudgetSchema, db: Session = Depends(get_db)):
+    existing = db.query(Budget).filter(
+        Budget.user_id == user_id,
+        Budget.category == budget.category
     ).first()
 
-    if existing_budget:
-        existing_budget.limit = budget.monthly_limit
+    if existing:
+        existing.monthly_limit = budget.monthly_limit
         db.commit()
-        db.refresh(existing_budget)
-        return existing_budget
+        db.refresh(existing)
+        return existing
 
-    new_budget = models.Budget(**budget.model_dump(), user_id=user_id)
+    new_budget = Budget(
+        user_id=user_id,
+        category=budget.category,
+        monthly_limit=budget.monthly_limit
+    )
     db.add(new_budget)
     db.commit()
     db.refresh(new_budget)
     return new_budget
 
-
-@budget_router.get("/", response_model=list[schemas.BudgetResponse])
-def get_budgets(
-    user_id: int = 1,
-    db: Session = Depends(get_db)
-):
-    return db.query(models.Budget).filter(models.Budget.user_id == user_id).all()
-
-# 1. PDF Monthly Report Generator (ReportLab)
-@router.get("/report/pdf")
-def export_pdf_report(user_id: int = 1, db: Session = Depends(get_db)):
-    expenses = db.query(models.Expense).filter(models.Expense.user_id == user_id).all()
-    
-    buffer = io.BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
-    
-    # PDF Content Writing
-    p.drawString(50, height - 50, "Monthly Expense Report")
-    p.drawString(50, height - 70, f"User ID: {user_id}")
-    
-    y = height - 100
-    for exp in expenses:
-        # New page if space runs out
-        if y < 50:  
-            p.showPage()
-            y = height - 50
-        text = f"Category: {getattr(exp, 'category', 'N/A')} | Amount: {getattr(exp, 'amount', 0)} | Date: {getattr(exp, 'date', 'N/A')}"
-        p.drawString(50, y, text)
-        y -= 20
-        
-    p.save()
-    buffer.seek(0)
-    
-    return StreamingResponse(
-        buffer, 
-        media_type="application/pdf", 
-        headers={"Content-Disposition": "attachment; filename=monthly_report.pdf"}
-    )
-
-
-# Excel Monthly Report Exporter (openpyxl)
-@router.get("/report/excel")
-def export_excel_report(user_id: int = 1, db: Session = Depends(get_db)):
-    expenses = db.query(models.Expense).filter(models.Expense.user_id == user_id).all()
-    
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    if ws is not None:
-        ws.title = "Expenses Report"
-        
-        # Header Row
-        ws.append(["ID", "Title", "Amount", "Category", "Date"])
-        
-        # Data Rows
-        for exp in expenses:
-            ws.append([
-                getattr(exp, "id", ""),
-                getattr(exp, "title", ""),
-                getattr(exp, "amount", 0),
-                getattr(exp, "category", ""),
-                str(getattr(exp, "date", ""))
-            ])
-            
-    buffer = io.BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-    
-    return StreamingResponse(
-        buffer,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=monthly_report.xlsx"}
-    )
-
-# INCLUDE ROUTERS IN APP (END OF FILE)
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app",host="127.0.0.1",port=8001 , reload=True)
-
-app.include_router(auth.router)
-app.include_router(router)
-app.include_router(income_router)
-app.include_router(budget_router)
+@app.delete("/budgets/{budget_id}")
+def delete_budget(budget_id: int, db: Session = Depends(get_db)):
+    db_budget = db.query(Budget).filter(Budget.id == budget_id).first()
+    if not db_budget:
+        raise HTTPException(status_code=404, detail="Budget not found")
+    db.delete(db_budget)
+    db.commit()
+    return {"message": "Deleted successfully"}
