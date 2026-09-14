@@ -5,11 +5,15 @@ from pydantic import BaseModel
 from typing import Optional, List
 from datetime import date
 from sqlalchemy.orm import Session
-from database import get_db
-from models import Expense, Income, Budget ,User
+from database import get_db,engine
+from models import Expense, Income, Budget ,User,Base
 from email_utils import send_budget_alert
+import models
+from database import engine
 from sqlalchemy import func
 
+models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 app = FastAPI()
 
 app.add_middleware(
