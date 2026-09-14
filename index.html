@@ -654,18 +654,41 @@
             renderBudgets(allBudgets);
         }
 
-        async function loadTransactions() {
+       async function loadTransactions() {
+            // 1. Storage se latest user ID dynamic read karein
+            const currentUserData = JSON.parse(localStorage.getItem('pro_current_user'));
+            const activeUserId = currentUserData ? currentUserData.id : null;
+
+            // 2. Auth Guard: Agar user login nahi hai ya ID undefined hai to fetch stop karein
+            if (!activeUserId) {
+                console.warn("User ID not found. Skipping transaction load.");
+                allTransactions = [];
+                return;
+            }
+
             try {
+                // 3. Dynamic activeUserId pass karein
                 const [expRes, incRes] = await Promise.all([
-                    fetch(`${API_BASE_URL}/expenses/?user_id=${USER_ID}`),
-                    fetch(`${API_BASE_URL}/incomes/?user_id=${USER_ID}`)
+                    fetch(`${API_BASE_URL}/expenses/?user_id=${activeUserId}`),
+                    fetch(`${API_BASE_URL}/incomes/?user_id=${activeUserId}`)
                 ]);
+
+                if (!expRes.ok || !incRes.ok) {
+                    throw new Error("Server returned non-200 status");
+                }
+
                 const expenses = await expRes.json();
                 const incomes = await incRes.json();
+
                 allTransactions = [
                     ...expenses.map(e => ({ ...e, type: 'expense' })),
                     ...incomes.map(i => ({ ...i, type: 'income' }))
                 ];
+
+                // Agar render UI function hai to use call karein
+                if (typeof renderTransactions === 'function') {
+                    renderTransactions();
+                }
             } catch (err) {
                 console.error("Load transactions error:", err);
                 showToast(`❌ Failed to load transactions`, 'danger');
