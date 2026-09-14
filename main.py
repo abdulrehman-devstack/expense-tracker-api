@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
@@ -36,6 +37,10 @@ class BudgetSchema(BaseModel):
     category: str
     monthly_limit: float
 
+
+@app.get("/")
+def read_root():
+    return FileResponse("index.html")
 
 @app.get("/expenses/")
 def get_expenses(user_id: int, db: Session = Depends(get_db)):
