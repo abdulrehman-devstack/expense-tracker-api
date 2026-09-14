@@ -543,17 +543,19 @@
 
     <script>
      const API_BASE_URL = '';
+        let currentUserData = null;
+        try {
+            const storedUser = localStorage.getItem('pro_current_user');
+            currentUserData = storedUser ? JSON.parse(storedUser) : null;
+        } catch (e) {
+            console.error("User storage parsing error:", e);
+        }
+        const USER_ID = (currentUserData && currentUserData.id) ? Number(currentUserData.id) : 0;
 
-        // Storage se dynamic user fetch karein
-        const currentUserData = JSON.parse(localStorage.getItem('pro_current_user'));
-        const USER_ID = currentUserData ? currentUserData.id : null;
-
-        // ============= STATE =============
         let isSignUpMode = false;
         let currentUser = currentUserData || null;
         let myChart = null;
         let editModalInstance = null;
-        
         let editBudgetModalInstance = null;
         let allTransactions = [];
         let allBudgets = [];
