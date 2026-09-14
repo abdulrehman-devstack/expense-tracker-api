@@ -1,6 +1,6 @@
-from datetime import datetime,date
+from datetime import datetime, date
 from typing import Optional
-from pydantic import BaseModel, EmailStr ,Field
+from pydantic import BaseModel, EmailStr, Field
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -22,15 +22,14 @@ class Token(BaseModel):
     token_type: str
     
 class ExpenseBase(BaseModel):
+    title: str = Field(default="Untitled", description="Title of the expense")  # ⚠️ Added missing title
     amount: float = Field(..., gt=0, description="Amount must be positive")
     category: str
     date: date
     note: Optional[str] = None
 
-
 class ExpenseCreate(ExpenseBase):
     pass
-
 
 class ExpenseResponse(ExpenseBase):
     id: int
@@ -44,17 +43,14 @@ class AnalyticsResponse(BaseModel):
     total_count: int
     category_breakdown: dict[str, float]
     
-    
 class IncomeBase(BaseModel):
     amount: float = Field(..., gt=0, description="Amount must be positive")
     source: str
     date: date
     note: Optional[str] = None
 
-
 class IncomeCreate(IncomeBase):
     pass
-
 
 class IncomeResponse(IncomeBase):
     id: int
@@ -67,10 +63,8 @@ class BudgetBase(BaseModel):
     category: str
     monthly_limit: float = Field(..., gt=0, description="Budget limit must be greater than zero")
 
-
 class BudgetCreate(BudgetBase):
     pass
-
 
 class BudgetResponse(BudgetBase):
     id: int

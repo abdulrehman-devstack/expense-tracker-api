@@ -1,21 +1,25 @@
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import FileResponse
+import io
+import pandas as pd
+from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import date
 from sqlalchemy.orm import Session
-from database import get_db,engine
-from models import Expense, Income, Budget ,User,Base
-from email_utils import send_budget_alert
-import models
-from database import engine
 from sqlalchemy import func
 
-models.Base.metadata.create_all(bind=engine)
-Base.metadata.create_all(bind=engine)
-app = FastAPI()
+from database import get_db, engine
+from models import Expense, Income, Budget, User, Base
+from email_utils import send_budget_alert
+import auth  # ⚠️ Auth router import kar liya hai
 
+# Tables initialize karein
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Expense Tracker API", version="1.0.0")
+
+# CORS Setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,6 +28,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ⚠️ AUTHENTICATION ROUTER REGISTER
+app.include_router(auth.router)
+
+
+# ============ SCHEMAS ============
 class ExpenseSchema(BaseModel):
     title: str
     amount: float
@@ -42,10 +51,13 @@ class BudgetSchema(BaseModel):
     monthly_limit: float
 
 
+# ============ ROOT ROUTE ============
 @app.get("/")
 def read_root():
     return FileResponse("index.html")
 
+
+# ============ EXPENSES ENDPOINTS ============
 @app.get("/expenses/")
 def get_expenses(user_id: int, db: Session = Depends(get_db)):
     return db.query(Expense).filter(Expense.user_id == user_id).all()
@@ -64,6 +76,7 @@ def create_expense(user_id: int, expense: ExpenseSchema, db: Session = Depends(g
     db.commit()
     db.refresh(new_expense)
 
+    # Budget alert check
     budget = db.query(Budget).filter(
         Budget.user_id == user_id,
         Budget.category == expense.category
@@ -112,6 +125,61 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     return {"message": "Deleted successfully"}
 
 
+# ============ EXCEL & PDF EXPORT ENDPOINTS ============
+@app.get("/expenses/report/excel")
+def export_expenses_excel(user_id: int, db: Session = Depends(get_db)):
+    expenses = db.query(Expense).filter(Expense.user_id == user_id).all()
+    if not expenses:
+        raise HTTPException(status_code=404, detail="No expense records found to export")
+
+    data = []
+    for exp in expenses:
+        data.append({
+            "ID": exp.id,
+            "Title": exp.title,
+            "Amount ($)": exp.amount,
+            "Category": exp.category,
+            "Date": str(exp.date),
+            "Note": exp.note or ""
+        })
+
+    df = pd.DataFrame(data)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Expenses')
+    output.seek(0)
+
+    headers = {'Content-Disposition': 'attachment; filename="Expense_Report.xlsx"'}
+    return StreamingResponse(
+        output, 
+        headers=headers, 
+        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+@app.get("/expenses/report/pdf")
+def export_expenses_pdf(user_id: int, db: Session = Depends(get_db)):
+    expenses = db.query(Expense).filter(Expense.user_id == user_id).all()
+    if not expenses:
+        raise HTTPException(status_code=404, detail="No expense records found to export")
+
+    pdf_content = f"--- EXPENSE REPORT (User ID: {user_id}) ---\n\n"
+    pdf_content += f"{'Title':<20} | {'Category':<15} | {'Amount':<10} | {'Date':<12}\n"
+    pdf_content += "-" * 65 + "\n"
+
+    total = 0
+    for exp in expenses:
+        pdf_content += f"{exp.title:<20} | {exp.category:<15} | ${exp.amount:<9.2f} | {str(exp.date):<12}\n"
+        total += float(exp.amount)
+
+    pdf_content += "-" * 65 + "\n"
+    pdf_content += f"TOTAL EXPENSE: ${total:.2f}\n"
+
+    buffer = io.BytesIO(pdf_content.encode('utf-8'))
+    headers = {'Content-Disposition': 'attachment; filename="Expense_Report.pdf"'}
+    return StreamingResponse(buffer, headers=headers, media_type='application/pdf')
+
+
+# ============ INCOMES ENDPOINTS ============
 @app.get("/incomes/")
 def get_incomes(user_id: int, db: Session = Depends(get_db)):
     return db.query(Income).filter(Income.user_id == user_id).all()
@@ -154,6 +222,7 @@ def delete_income(income_id: int, db: Session = Depends(get_db)):
     return {"message": "Deleted successfully"}
 
 
+# ============ BUDGETS ENDPOINTS ============
 @app.get("/budgets/")
 def get_budgets(user_id: int, db: Session = Depends(get_db)):
     return db.query(Budget).filter(Budget.user_id == user_id).all()
