@@ -2,7 +2,7 @@ import smtplib
 from email.message import EmailMessage
 
 SENDER_EMAIL = "ar4729189@gmail.com"
-SENDER_PASSWORD = "hsed fzki watt ynyv"   # Google App Password
+SENDER_PASSWORD = "hsed fzki watt ynyv"
 
 
 def send_budget_alert(to_email: str, category: str, limit: float, total_spent: float):

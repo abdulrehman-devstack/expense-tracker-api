@@ -19,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic Schemas
 class ExpenseSchema(BaseModel):
     title: str
     amount: float
@@ -38,14 +37,12 @@ class BudgetSchema(BaseModel):
     monthly_limit: float
 
 
-# ============ EXPENSES ENDPOINTS ============
 @app.get("/expenses/")
 def get_expenses(user_id: int, db: Session = Depends(get_db)):
     return db.query(Expense).filter(Expense.user_id == user_id).all()
 
 @app.post("/expenses/")
 def create_expense(user_id: int, expense: ExpenseSchema, db: Session = Depends(get_db)):
-    # 1. Expense ko database mein save karein
     new_expense = Expense(
         title=expense.title,
         amount=expense.amount,
@@ -58,20 +55,17 @@ def create_expense(user_id: int, expense: ExpenseSchema, db: Session = Depends(g
     db.commit()
     db.refresh(new_expense)
 
-    # 2. Check karein ke is category ka koi budget set hai ya nahi
     budget = db.query(Budget).filter(
         Budget.user_id == user_id,
         Budget.category == expense.category
     ).first()
 
     if budget:
-        # 3. Is category ka total kharcha (spent) nikal lein
         total_spent = db.query(func.sum(Expense.amount)).filter(
             Expense.user_id == user_id,
             Expense.category == expense.category
         ).scalar() or 0.0
 
-        # 4. Agar total spent budget limit se barh gaya hai toh email alert bhej dein
         if total_spent > float(budget.monthly_limit):
             user = db.query(User).filter(User.id == user_id).first()
             if user and user.email:
@@ -109,7 +103,6 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     return {"message": "Deleted successfully"}
 
 
-# ============ INCOMES ENDPOINTS ============
 @app.get("/incomes/")
 def get_incomes(user_id: int, db: Session = Depends(get_db)):
     return db.query(Income).filter(Income.user_id == user_id).all()
@@ -152,7 +145,6 @@ def delete_income(income_id: int, db: Session = Depends(get_db)):
     return {"message": "Deleted successfully"}
 
 
-# ============ BUDGETS ENDPOINTS ============
 @app.get("/budgets/")
 def get_budgets(user_id: int, db: Session = Depends(get_db)):
     return db.query(Budget).filter(Budget.user_id == user_id).all()
