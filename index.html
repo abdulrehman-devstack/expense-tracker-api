@@ -2,337 +2,316 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevTracker Pro | Secure Auth Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="index.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+<link rel="stylesheet" href="/style.css" />
 </head>
 
 <body>
 
-    <!-- Header -->
-    <nav class="navbar navbar-expand-lg navbar-custom px-4 py-3 no-print">
-        <a class="navbar-brand fw-bold text-dark d-flex align-items-center gap-2" href="#">
-            <div class="bg-primary text-white p-2 rounded-3 d-flex align-items-center justify-content-center"
-                style="width: 38px; height: 38px;">
-                <i class="fa-solid fa-wallet"></i>
-            </div>
-            <span>DevTracker <span class="text-primary">Pro</span></span>
-        </a>
-        <div class="ms-auto d-flex align-items-center gap-3" id="navUserInfo" style="display: none !important;">
-            <span class="text-secondary small fw-semibold" id="displayUsername"></span>
-            <button onclick="logout()" class="btn btn-sm btn-outline-danger fw-semibold px-3 rounded-pill">
-                <i class="fa-solid fa-right-from-bracket me-1"></i> Logout
-            </button>
-        </div>
-    </nav>
-
-    <!-- AUTH SECTION -->
-    <div id="authSection" class="container py-5 flex-grow-1 d-flex align-items-center">
+    <!-- ==================================================== -->
+    <!-- AUTH PAGE (Login / Register)                         -->
+    <!-- ==================================================== -->
+    <div id="authPage" class="auth-body">
         <div class="auth-container">
-            <div class="card-custom p-4 p-md-5">
-                <div class="text-center mb-4">
-                    <h3 class="fw-bold text-dark" id="authTitle">Welcome Back</h3>
-                    <p class="text-secondary small" id="authSubtitle">Please enter your details to sign in</p>
+            <div class="auth-card">
+
+                <div class="auth-header">
+                    <div class="auth-logo">💰</div>
+                    <h1 class="auth-title">Expense Tracker</h1>
+                    <p class="auth-subtitle">Manage your money smartly</p>
                 </div>
-                <div id="authAlert" class="alert alert-danger d-none py-2 small" role="alert"></div>
-                <form id="authForm">
-                    <div class="mb-3" id="nameFieldGroup" style="display: none;">
-                        <label class="form-label small fw-semibold text-secondary">Full Name</label>
-                        <input type="text" id="authName" class="form-control" placeholder="">
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Login</button>
+                    <button class="auth-tab" data-tab="register">Register</button>
+                </div>
+
+                <!-- LOGIN FORM -->
+                <form id="loginForm" class="auth-form active">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="you@example.com" required />
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Email Address</label>
-                        <input type="email" id="authEmail" class="form-control" placeholder="Email.@gmail.com" required>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required />
                     </div>
-                    <div class="mb-4">
-                        <label class="form-label small fw-semibold text-secondary">Password</label>
-                        <input type="password" id="authPassword" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-custom-primary w-100 mb-3" id="authSubmitBtn">Sign In</button>
+                    <button type="submit" class="btn-primary">Login</button>
+                    <p class="form-message" id="loginMessage"></p>
                 </form>
-                <div class="text-center">
-                    <p class="small text-secondary m-0" id="authToggleText">
-                        Don't have an account? <a href="#" onclick="toggleAuthMode(event)"
-                            class="text-primary fw-semibold text-decoration-none">Sign Up</a>
-                    </p>
-                </div>
+
+                <!-- REGISTER FORM -->
+                <form id="registerForm" class="auth-form">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="registerEmail" placeholder="you@example.com" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="registerPassword" placeholder="min 6 characters" minlength="6"
+                            required />
+                    </div>
+                    <button type="submit" class="btn-primary">Register</button>
+                    <p class="form-message" id="registerMessage"></p>
+                </form>
+
+                <p class="auth-footer">
+                    By continuing, you agree to track your expenses wisely 💸
+                </p>
+
             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD SECTION -->
-    <div id="dashboardSection" class="container py-4 flex-grow-1 d-none">
-        <div class="print-header">
-            <h2>DevTracker Pro - Transaction Report</h2>
-            <p id="printUserInfo"></p>
-            <p id="printDate"></p>
-        </div>
+    <!-- ==================================================== -->
+    <!-- DASHBOARD PAGE                                        -->
+    <!-- ==================================================== -->
+    <div id="dashboardPage" class="dash-body" style="display:none;">
 
-        <!-- Stats -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="stat-card balance">
-                    <h6 class="text-white-50 small fw-bold tracking-wider">NET BALANCE</h6>
-                    <h2 class="fw-bold m-0 mt-2" id="totalBalance">$0.00</h2>
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <span class="brand-icon">💰</span>
+                <span class="brand-text">Expense Tracker</span>
             </div>
-            <div class="col-md-4">
-                <div class="stat-card income">
-                    <h6 class="text-white-50 small fw-bold tracking-wider">TOTAL INCOME</h6>
-                    <h2 class="fw-bold m-0 mt-2" id="totalIncome">$0.00</h2>
-                    <i class="fa-solid fa-arrow-trend-up"></i>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card expense">
-                    <h6 class="text-white-50 small fw-bold tracking-wider">TOTAL EXPENSES</h6>
-                    <h2 class="fw-bold m-0 mt-2" id="totalExpense">$0.00</h2>
-                    <i class="fa-solid fa-arrow-trend-down"></i>
-                </div>
-            </div>
-        </div>
 
-        <div class="row g-4">
-            <!-- Left Panel -->
-            <div class="col-lg-4">
-                <div class="card-custom p-4 mb-4 no-print" id="entryCard">
-                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-circle-plus text-primary"></i> New Transaction
-                    </h5>
-                    <form id="entryForm">
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Transaction Type</label>
-                            <select id="entryType" class="form-select">
-                                <option value="expense">Expense</option>
-                                <option value="income">Income</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Title / Description</label>
-                            <input type="text" id="entryTitle" class="form-control" placeholder="e.g. Grocery" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Amount ($)</label>
-                            <input type="number" step="0.01" id="entryAmount" class="form-control" placeholder="0.00"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Category / Source</label>
-                            <input type="text" id="entryCategory" class="form-control" placeholder="Food / Freelance"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Date</label>
-                            <input type="date" id="entryDate" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-custom-primary w-100 shadow-sm">
-                            <i class="fa-solid fa-check me-1"></i> Save Entry
-                        </button>
-                    </form>
-                </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <span class="nav-icon">📊</span> Dashboard
+                </a>
+                <a href="#" class="nav-item" data-section="expenses">
+                    <span class="nav-icon">💸</span> Expenses
+                </a>
+                <a href="#" class="nav-item" data-section="incomes">
+                    <span class="nav-icon">💵</span> Incomes
+                </a>
+                <a href="#" class="nav-item" data-section="budgets">
+                    <span class="nav-icon">🎯</span> Budgets
+                </a>
+                <a href="#" class="nav-item" data-section="reports">
+                    <span class="nav-icon">📄</span> Reports
+                </a>
+                <a href="#" class="nav-item" data-section="analytics">
+                    <span class="nav-icon">📈</span> Analytics
+                </a>
+            </nav>
+        </aside>
 
-                <div class="card-custom p-4 mb-4 no-print" id="budgetCard">
-                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-piggy-bank text-primary"></i> Set Budget
-                    </h5>
-                    <form id="budgetForm">
-                        <input type="hidden" id="budgetEditId">
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Budget Category</label>
-                            <input type="text" id="budgetCategory" class="form-control" placeholder="e.g. Food"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Budget Amount ($)</label>
-                            <input type="number" step="0.01" id="budgetAmount" class="form-control" placeholder="0.00"
-                                required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Month</label>
-                            <input type="month" id="budgetMonth" class="form-control" required>
-                        </div>
-                        <button type="submit" class="btn btn-custom-warning w-100 shadow-sm" id="budgetSubmitBtn">
-                            <i class="fa-solid fa-check me-1"></i> Save Budget
-                        </button>
-                    </form>
-                </div>
+        <!-- MAIN AREA -->
+        <main class="main-area">
 
-                <div class="card-custom p-4 no-print" id="exportCard">
-                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-file-arrow-down text-primary"></i> Export & Reports
-                    </h5>
-                    <div class="d-grid gap-2">
-                        <button onclick="exportExcel()"
-                            class="btn btn-outline-success fw-semibold py-2 rounded-3 border-2">
-                            <i class="fa-solid fa-file-excel me-2"></i> Export Excel
-                        </button>
-                        <button onclick="exportPDF()"
-                            class="btn btn-outline-danger fw-semibold py-2 rounded-3 border-2">
-                            <i class="fa-solid fa-file-pdf me-2"></i> Export PDF
-                        </button>
+            <header class="topbar">
+                <h2 class="topbar-title" id="pageTitle">Dashboard</h2>
+                <div class="topbar-right">
+                    <span class="user-email" id="userEmail">loading...</span>
+                    <button class="btn-logout" id="logoutBtn">Logout</button>
+                </div>
+            </header>
+
+            <!-- SECTION: DASHBOARD -->
+            <section class="section active" id="section-dashboard">
+                <div class="cards-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Spent</div>
+                        <div class="stat-value" id="statSpent">$0.00</div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Right Panel -->
-            <div class="col-lg-8">
-                <div class="card-custom p-4 mb-4 no-print" id="budgetSummaryCard">
-                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-chart-simple text-primary"></i> Budget Overview
-                    </h5>
-                    <div id="budgetSummaryContainer">
-                        <p class="text-muted text-center py-3 mb-0">No budgets set yet.</p>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Income</div>
+                        <div class="stat-value" id="statIncome">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Balance</div>
+                        <div class="stat-value" id="statBalance">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Expenses Count</div>
+                        <div class="stat-value" id="statCount">0</div>
                     </div>
                 </div>
 
-                <div class="card-custom p-4 mb-4 no-print chart-container-print">
-                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2">
-                        <i class="fa-solid fa-chart-pie text-primary"></i> Expense Breakdown
-                    </h5>
-                    <div style="height: 260px; display: flex; justify-content: center; position: relative;">
-                        <canvas id="expenseChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="card-custom p-4">
-                    <h5 class="fw-bold mb-3 text-dark d-flex align-items-center gap-2 no-print">
-                        <i class="fa-solid fa-list-check text-primary"></i> History Feed
-                    </h5>
-                    <div class="table-responsive">
-                        <table class="table table-custom align-middle mb-0">
+                <div class="panel">
+                    <h3 class="panel-title">Recent Expenses</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
                                     <th>Title</th>
                                     <th>Category</th>
                                     <th>Amount</th>
-                                    <th class="no-print text-end">Action</th>
+                                    <th>Date</th>
                                 </tr>
                             </thead>
-                            <tbody id="transactionTableBody">
+                            <tbody id="recentExpensesBody">
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">No records found.</td>
+                                    <td colspan="4" class="empty">No expenses yet</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </section>
 
-    <!-- EDIT TRANSACTION MODAL -->
-    <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">
-                        <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Edit Transaction
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editForm">
-                        <input type="hidden" id="editIndex">
-                        <input type="hidden" id="editId">
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Transaction Type</label>
-                            <select id="editType" class="form-select">
-                                <option value="expense">Expense</option>
-                                <option value="income">Income</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Title / Description</label>
-                            <input type="text" id="editTitle" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Amount ($)</label>
-                            <input type="number" step="0.01" id="editAmount" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Category / Source</label>
-                            <input type="text" id="editCategory" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Date</label>
-                            <input type="date" id="editDate" class="form-control" required>
-                        </div>
+            <!-- SECTION: EXPENSES -->
+            <section class="section" id="section-expenses">
+                <div class="panel">
+                    <h3 class="panel-title">Add Expense</h3>
+                    <form id="expenseForm" class="inline-form">
+                        <input type="text" id="expTitle" placeholder="Title" required />
+                        <input type="number" id="expAmount" placeholder="Amount" step="0.01" min="0.01" required />
+                        <input type="text" id="expCategory" placeholder="Category" required />
+                        <input type="date" id="expDate" required />
+                        <input type="text" id="expNote" placeholder="Note (optional)" />
+                        <button type="submit" class="btn-primary">Add</button>
                     </form>
+                    <p class="form-message" id="expenseMsg"></p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-custom-primary px-4" onclick="saveEdit()">
-                        <i class="fa-solid fa-check me-1"></i> Update
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- EDIT BUDGET MODAL -->
-    <div class="modal fade" id="editBudgetModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold">
-                        <i class="fa-solid fa-pen-to-square text-warning me-2"></i>Edit Budget
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="panel">
+                    <h3 class="panel-title">All Expenses</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Note</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesBody">
+                                <tr>
+                                    <td colspan="7" class="empty">No expenses yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <form id="editBudgetForm">
-                        <input type="hidden" id="editBudgetId">
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Budget Category</label>
-                            <input type="text" id="editBudgetCategory" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Budget Amount ($)</label>
-                            <input type="number" step="0.01" id="editBudgetAmount" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold text-secondary">Month</label>
-                            <input type="month" id="editBudgetMonth" class="form-control" required>
-                        </div>
+            </section>
+
+            <!-- SECTION: INCOMES -->
+            <section class="section" id="section-incomes">
+                <div class="panel">
+                    <h3 class="panel-title">Add Income</h3>
+                    <form id="incomeForm" class="inline-form">
+                        <input type="text" id="incSource" placeholder="Source" required />
+                        <input type="number" id="incAmount" placeholder="Amount" step="0.01" min="0.01" required />
+                        <input type="date" id="incDate" required />
+                        <input type="text" id="incNote" placeholder="Note (optional)" />
+                        <button type="submit" class="btn-primary">Add</button>
                     </form>
+                    <p class="form-message" id="incomeMsg"></p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-custom-warning px-4" onclick="saveBudgetEdit()">
-                        <i class="fa-solid fa-check me-1"></i> Update
-                    </button>
+
+                <div class="panel">
+                    <h3 class="panel-title">All Incomes</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Source</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Note</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="incomesBody">
+                                <tr>
+                                    <td colspan="6" class="empty">No incomes yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </section>
+
+            <!-- SECTION: BUDGETS -->
+            <section class="section" id="section-budgets">
+                <div class="panel">
+                    <h3 class="panel-title">Set Monthly Budget</h3>
+                    <form id="budgetForm" class="inline-form">
+                        <input type="text" id="budCategory" placeholder="Category" required />
+                        <input type="number" id="budLimit" placeholder="Monthly Limit" step="0.01" min="0.01"
+                            required />
+                        <button type="submit" class="btn-primary">Save</button>
+                    </form>
+                    <p class="form-message" id="budgetMsg"></p>
+                </div>
+
+                <div class="panel">
+                    <h3 class="panel-title">All Budgets</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Category</th>
+                                    <th>Monthly Limit</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="budgetsBody">
+                                <tr>
+                                    <td colspan="4" class="empty">No budgets set</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: REPORTS -->
+            <section class="section" id="section-reports">
+                <div class="panel">
+                    <h3 class="panel-title">Download Reports</h3>
+                    <p class="panel-desc">Generate a report of all your expenses in PDF or Excel format.</p>
+                    <div class="report-buttons">
+                        <button class="btn-primary" id="downloadPdfBtn">📄 Download PDF</button>
+                        <button class="btn-secondary" id="downloadExcelBtn">📊 Download Excel</button>
+                    </div>
+                    <p class="form-message" id="reportMsg"></p>
+                </div>
+            </section>
+
+            <!-- SECTION: ANALYTICS -->
+            <section class="section" id="section-analytics">
+                <div class="panel">
+                    <h3 class="panel-title">Category Breakdown</h3>
+                    <div class="chart-wrap">
+                        <canvas id="analyticsChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3 class="panel-title">Category Totals</h3>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Total Spent</th>
+                                </tr>
+                            </thead>
+                            <tbody id="analyticsBody">
+                                <tr>
+                                    <td colspan="2" class="empty">No data yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
     </div>
 
-    <!-- Toast -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
-        <div id="liveToast" class="toast align-items-center border-0" role="alert">
-            <div class="d-flex">
-                <div class="toast-body fw-semibold" id="toastMessage"></div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-            </div>
-        </div>
-    </div>
-
-    <footer class="py-4 text-center mt-auto no-print">
-        <div class="container">
-            <p class="small text-muted m-0 fw-medium">&copy; 2026 DevTracker Pro Edition. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="index.js">
-</script>
+    <script src="/app.js"></script>
 </body>
 
 </html>

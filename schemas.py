@@ -1,14 +1,20 @@
-from datetime import datetime, date
-from typing import Optional
+from datetime import date
+from typing import Dict, Optional
 from pydantic import BaseModel, EmailStr, Field
 
+
+# ============================================================
+# USER SCHEMAS
+# ============================================================
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(..., min_length=6)
+
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class UserResponse(BaseModel):
     id: int
@@ -17,19 +23,26 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
-    
+
+
+# ============================================================
+# EXPENSE SCHEMAS
+# ============================================================
 class ExpenseBase(BaseModel):
-    title: str = Field(default="Untitled", description="Title of the expense") 
-    amount: float = Field(..., gt=0, description="Amount must be positive")
+    title: str = Field(default="Untitled")
+    amount: float = Field(..., gt=0)
     category: str
     date: date
     note: Optional[str] = None
 
+
 class ExpenseCreate(ExpenseBase):
     pass
+
 
 class ExpenseResponse(ExpenseBase):
     id: int
@@ -37,20 +50,21 @@ class ExpenseResponse(ExpenseBase):
 
     class Config:
         from_attributes = True
-        
-class AnalyticsResponse(BaseModel):
-    total_spent: float
-    total_count: int
-    category_breakdown: dict[str, float]
-    
+
+
+# ============================================================
+# INCOME SCHEMAS
+# ============================================================
 class IncomeBase(BaseModel):
-    amount: float = Field(..., gt=0, description="Amount must be positive")
+    amount: float = Field(..., gt=0)
     source: str
     date: date
     note: Optional[str] = None
 
+
 class IncomeCreate(IncomeBase):
     pass
+
 
 class IncomeResponse(IncomeBase):
     id: int
@@ -58,13 +72,19 @@ class IncomeResponse(IncomeBase):
 
     class Config:
         from_attributes = True
-        
+
+
+# ============================================================
+# BUDGET SCHEMAS
+# ============================================================
 class BudgetBase(BaseModel):
     category: str
-    monthly_limit: float = Field(..., gt=0, description="Budget limit must be greater than zero")
+    monthly_limit: float = Field(..., gt=0)
+
 
 class BudgetCreate(BudgetBase):
     pass
+
 
 class BudgetResponse(BudgetBase):
     id: int
@@ -72,3 +92,15 @@ class BudgetResponse(BudgetBase):
 
     class Config:
         from_attributes = True
+
+
+# ============================================================
+# ANALYTICS
+# ============================================================
+class AnalyticsResponse(BaseModel):
+    total_spent: float
+    total_income: float
+    balance: float
+    total_count: int
+    average_expense: float
+    category_breakdown: Dict[str, float]
