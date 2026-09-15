@@ -17,15 +17,13 @@ import auth
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API", version="1.0.0")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 app.include_router(auth.router)
 
 

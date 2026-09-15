@@ -134,6 +134,7 @@ document.getElementById('authForm').addEventListener('submit', async function (e
             formData.append('username', email);
             formData.append('password', password);
 
+            // Yeh route 'auth/token' hona chahiye
             const res = await fetch(`${API_BASE_URL}auth/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
