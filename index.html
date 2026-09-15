@@ -541,8 +541,10 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Base URL configuration (Railway production endpoint)
-    const API_BASE_URL = 'https://railway.app'; // Safe: Aakhir se slash hata diya hai double-slash se bachne ke liye
+    // 🌐 Smart API URL: Agar local par ho toh localhost, warna live domain utha lega!
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:8000'
+        : window.location.origin;
 
     let currentUserData = null;
 
@@ -558,14 +560,12 @@
             const stored = localStorage.getItem('pro_current_user');
             if (!stored) return 0;
             const u = JSON.parse(stored);
-            // Supports JWT Token response and User ID extraction
             return u && (u.id || u.user_id) ? Number(u.id || u.user_id) : (u.access_token ? decodeUserIdFromToken(u.access_token) : 0);
         } catch (e) {
             return 0;
         }
     }
 
-    // Fallback Helper for JWT Tokens
     function decodeUserIdFromToken(token) {
         try {
             const payload = JSON.parse(atob(token.split('.')[1]));
@@ -647,7 +647,7 @@
         }
     }
 
-    // 🔥 FIXED AUTH HANDLER (Sync with auth.py Router logic)
+    // 🚀 Auth Form Handler
     document.getElementById('authForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         const email = document.getElementById('authEmail').value.trim();
@@ -655,12 +655,9 @@
         const alertBox = document.getElementById('authAlert');
         if (alertBox) alertBox.classList.add('d-none');
 
-       let targetEndpoint = isSignUpMode ? '/auth/register/' : '/auth/login/';
+        let targetEndpoint = isSignUpMode ? '/auth/register/' : '/auth/login/';
 
         try {
-            let userObj = null;
-
-            // Direct string layout matching bina dynamic concatenation issues ke
             const res = await fetch(API_BASE_URL + targetEndpoint, {
                 method: 'POST',
                 headers: {
@@ -676,17 +673,14 @@
             }
 
             if (isSignUpMode) {
-                if (typeof showToast === "function") showToast("🎉 Account created successfully!", "success");
-                // Automatically flip to Sign In state and let the user log in
+                showToast("🎉 Account created successfully! Please sign in.", "success");
                 toggleAuthMode();
                 return;
             } else {
-                // Sign In successful
-                userObj = data.user ? { ...data.user, access_token: data.access_token } : { email, ...data };
-                if (typeof showToast === "function") showToast("🔑 Logged in successfully!", "success");
+                showToast("🔑 Logged in successfully!", "success");
+                currentUser = data; // Backend returns the user object directly (id & email)
             }
 
-            currentUser = userObj;
             localStorage.setItem('pro_current_user', JSON.stringify(currentUser));
             document.getElementById('authForm').reset();
             checkAuthState();
@@ -713,7 +707,6 @@
     }
 
     async function loadBudgets() {
-        // Optional placeholder: code handles array stability if function doesn't exist
         allBudgets = [];
     }
 
@@ -740,21 +733,17 @@
             console.error("Transactions loading error:", err);
         }
     }
-    // Yeh function code ke aakhir mein add kar dein
-        function showToast(message, type) {
-            console.log(`[Toast ${type}]: ${message}`);
-            // Agar aapke paas pehle se alert box hai, to ye wahan message dikha dega
-            const alertBox = document.getElementById('authAlert');
-            if (alertBox) {
-                alertBox.innerText = message;
-                alertBox.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
-                alertBox.classList.remove('d-none');
-            } else {
-                // Agar alert box nahi mila to browser alert chalega
-                alert(message);
-            }
-        }
 
+    function showToast(message, type) {
+        const alertBox = document.getElementById('authAlert');
+        if (alertBox) {
+            alertBox.innerText = message;
+            alertBox.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
+            alertBox.classList.remove('d-none');
+        } else {
+            alert(message);
+        }
+    }
 </script>
 </body>
 
