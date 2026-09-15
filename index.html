@@ -542,8 +542,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // ⚠️ Production URL (Set your deployed Railway backend URL here)
-        const API_BASE_URL = 'https://dependable-adaptation-production.up.railway.app'; // End par '/' mat lagayein
+        const API_BASE_URL = 'https://dependable-adaptation-production.up.railway.app'; 
 
         let currentUserData = null;
 
@@ -554,7 +553,6 @@
             console.error("User storage parsing error:", e);
         }
 
-        // Dynamic User ID Retriever
         function getActiveUserId() {
             try {
                 const stored = localStorage.getItem('pro_current_user');
@@ -590,7 +588,6 @@
             if (budgetMonthEl) budgetMonthEl.value = new Date().toISOString().slice(0, 7);
         };
 
-        // ============ AUTH ============
         function checkAuthState() {
             const authSection = document.getElementById('authSection');
             const dashboardSection = document.getElementById('dashboardSection');
@@ -635,24 +632,24 @@
             }
         }
 
-        // AUTH FORM SUBMIT - Direct API Call To FastAPI Backend
+       // AUTH FORM SUBMIT - Aligned with /auth/ endpoints
         document.getElementById('authForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value.trim();
-            const nameEl = document.getElementById('authName');
-            const name = nameEl ? nameEl.value.trim() : '';
             const alertBox = document.getElementById('authAlert');
             if (alertBox) alertBox.classList.add('d-none');
 
             try {
                 let userObj = null;
                 if (isSignUpMode) {
-                    const res = await fetch(`${API_BASE_URL}/users/register`, {
+                    // Updated route to /auth/register and payload to email + password
+                    const res = await fetch(`${API_BASE_URL}/auth/register`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ name: name || 'User', email, password })
+                        body: JSON.stringify({ email, password })
                     });
+
                     if (!res.ok) {
                         const err = await res.json();
                         throw new Error(err.detail || "Registration failed");
@@ -660,11 +657,13 @@
                     userObj = await res.json();
                     showToast("🎉 Account created successfully!", "success");
                 } else {
-                    const res = await fetch(`${API_BASE_URL}/users/login`, {
+                    // Updated route to /auth/login
+                    const res = await fetch(`${API_BASE_URL}/auth/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, password })
                     });
+
                     if (!res.ok) {
                         const err = await res.json();
                         throw new Error(err.detail || "Invalid email or password!");
@@ -693,7 +692,6 @@
             checkAuthState();
         }
 
-        // ============ LOAD ============
         async function loadDashboard() {
             await Promise.all([loadTransactions(), loadBudgets()]);
             renderData(allTransactions);
@@ -747,7 +745,6 @@
             }
         }
 
-        // ============ RENDER ============
         function renderData(transactions) {
             const tbody = document.getElementById('transactionTableBody');
             if (!tbody) return;
@@ -912,7 +909,6 @@
             }
         }
 
-        // ============ BUDGET CHECK FUNCTION ============
         function checkBudgetExceeded(category) {
             const budget = allBudgets.find(b => (b.category || '').toLowerCase() === category.toLowerCase());
             if (!budget) return;
@@ -928,7 +924,6 @@
             }
         }
 
-        // ============ ENTRY SUBMIT ============
         document.getElementById('entryForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const activeUserId = getActiveUserId();
@@ -976,7 +971,6 @@
             }
         });
 
-        // ============ TRANSACTION EDIT/DELETE ============
         function openEditModal(index) {
             const item = allTransactions[index];
             if (!item || !editModalInstance) return;
@@ -1050,7 +1044,6 @@
             }
         }
 
-        // ============ BUDGET ============
         document.getElementById('budgetForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const activeUserId = getActiveUserId();
@@ -1096,7 +1089,6 @@
             const amount = parseFloat(document.getElementById('editBudgetAmount').value);
             const month = document.getElementById('editBudgetMonth').value;
 
-            // Uses PUT if budget ID is available, else falls back to POST upsert
             const endpoint = budgetId ? `${API_BASE_URL}/budgets/${budgetId}` : `${API_BASE_URL}/budgets/?user_id=${activeUserId}`;
             const method = budgetId ? 'PUT' : 'POST';
 
@@ -1132,7 +1124,6 @@
             }
         }
 
-        // ============ EXPORT ============
         function exportExcel() {
             const activeUserId = getActiveUserId();
             window.open(`${API_BASE_URL}/expenses/report/excel?user_id=${activeUserId}`, '_blank');
@@ -1145,7 +1136,6 @@
             showToast(`📄 PDF download started`, 'success');
         }
 
-        // ============ TOAST ============
         function showToast(message, type = 'info') {
             const toastEl = document.getElementById('liveToast');
             const toastBody = document.getElementById('toastMessage');
