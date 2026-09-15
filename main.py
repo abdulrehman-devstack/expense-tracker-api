@@ -12,14 +12,12 @@ from sqlalchemy import func
 from database import get_db, engine
 from models import Expense, Income, Budget, User, Base
 from email_utils import send_budget_alert
-import auth  # ⚠️ Auth router import kar liya hai
+import auth
 
-# Tables initialize karein
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API", version="1.0.0")
 
-# CORS Setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,11 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ⚠️ AUTHENTICATION ROUTER REGISTER
 app.include_router(auth.router)
 
 
-# ============ SCHEMAS ============
 class ExpenseSchema(BaseModel):
     title: str
     amount: float
@@ -57,7 +53,6 @@ def read_root():
     return FileResponse("index.html")
 
 
-# ============ EXPENSES ENDPOINTS ============
 @app.get("/expenses/")
 def get_expenses(user_id: int, db: Session = Depends(get_db)):
     return db.query(Expense).filter(Expense.user_id == user_id).all()
@@ -76,7 +71,6 @@ def create_expense(user_id: int, expense: ExpenseSchema, db: Session = Depends(g
     db.commit()
     db.refresh(new_expense)
 
-    # Budget alert check
     budget = db.query(Budget).filter(
         Budget.user_id == user_id,
         Budget.category == expense.category
@@ -123,8 +117,6 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     db.delete(db_expense)
     db.commit()
     return {"message": "Deleted successfully"}
-
-
 
 @app.get("/expenses/report/excel")
 def export_expenses_excel(user_id: int, db: Session = Depends(get_db)):
@@ -220,8 +212,6 @@ def delete_income(income_id: int, db: Session = Depends(get_db)):
     db.delete(db_income)
     db.commit()
     return {"message": "Deleted successfully"}
-
-
 
 @app.get("/budgets/")
 def get_budgets(user_id: int, db: Session = Depends(get_db)):

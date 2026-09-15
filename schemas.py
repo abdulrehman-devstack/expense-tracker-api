@@ -22,7 +22,7 @@ class Token(BaseModel):
     token_type: str
     
 class ExpenseBase(BaseModel):
-    title: str = Field(default="Untitled", description="Title of the expense")  # ⚠️ Added missing title
+    title: str = Field(default="Untitled", description="Title of the expense") 
     amount: float = Field(..., gt=0, description="Amount must be positive")
     category: str
     date: date
