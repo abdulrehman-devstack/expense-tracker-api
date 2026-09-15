@@ -741,6 +741,20 @@
             console.error("Transactions loading error:", err);
         }
     }
+    // Yeh function code ke aakhir mein add kar dein
+        function showToast(message, type) {
+            console.log(`[Toast ${type}]: ${message}`);
+            // Agar aapke paas pehle se alert box hai, to ye wahan message dikha dega
+            const alertBox = document.getElementById('authAlert');
+            if (alertBox) {
+                alertBox.innerText = message;
+                alertBox.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
+                alertBox.classList.remove('d-none');
+            } else {
+                // Agar alert box nahi mila to browser alert chalega
+                alert(message);
+            }
+        }
 
 </script>
 </body>
