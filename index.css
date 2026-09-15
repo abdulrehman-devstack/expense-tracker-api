@@ -1,0 +1,208 @@
+ body {
+     background-color: #f1f5f9;
+     font-family: 'Inter', sans-serif;
+     color: #334155;
+     display: flex;
+     flex-direction: column;
+     min-height: 100vh;
+ }
+
+ .navbar-custom {
+     background: #ffffff;
+     border-bottom: 1px solid #e2e8f0;
+     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+ }
+
+ .card-custom {
+     border: none;
+     border-radius: 16px;
+     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+     background: #ffffff;
+ }
+
+ .stat-card {
+     border-radius: 16px;
+     color: #fff;
+     padding: 24px;
+     position: relative;
+     overflow: hidden;
+     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+ }
+
+ .stat-card.balance {
+     background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+ }
+
+ .stat-card.income {
+     background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+ }
+
+ .stat-card.expense {
+     background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+ }
+
+ .stat-card.budget {
+     background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+ }
+
+ .stat-card i {
+     position: absolute;
+     right: -10px;
+     bottom: -10px;
+     font-size: 5rem;
+     opacity: 0.1;
+ }
+
+ .form-control,
+ .form-select {
+     border-radius: 10px;
+     padding: 12px;
+     border: 1px solid #cbd5e1;
+     background-color: #f8fafc;
+     font-size: 0.95rem;
+ }
+
+ .form-control:focus,
+ .form-select:focus {
+     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+     border-color: #3b82f6;
+     background-color: #fff;
+ }
+
+ .btn-custom-primary {
+     background: #2563eb;
+     border: none;
+     border-radius: 10px;
+     padding: 12px;
+     font-weight: 600;
+     color: white;
+     transition: all 0.2s;
+ }
+
+ .btn-custom-primary:hover {
+     background: #1d4ed8;
+     box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+ }
+
+ .btn-custom-warning {
+     background: #f59e0b;
+     border: none;
+     border-radius: 10px;
+     padding: 12px;
+     font-weight: 600;
+     color: white;
+     transition: all 0.2s;
+ }
+
+ .btn-custom-warning:hover {
+     background: #d97706;
+     box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+ }
+
+ .table-custom th {
+     font-weight: 600;
+     color: #64748b;
+     background-color: #f8fafc;
+     border-bottom: 2px solid #e2e8f0;
+     padding: 14px;
+ }
+
+ .table-custom td {
+     padding: 14px;
+     vertical-align: middle;
+     color: #334155;
+     border-bottom: 1px solid #f1f5f9;
+ }
+
+ .auth-container {
+     max-width: 420px;
+     margin: auto;
+     width: 100%;
+ }
+
+ footer {
+     background: #ffffff;
+     border-top: 1px solid #e2e8f0;
+     color: #64748b;
+ }
+
+ @media print {
+     .no-print {
+         display: none !important;
+     }
+
+     body {
+         background: #fff;
+     }
+
+     .card-custom {
+         box-shadow: none;
+         border: 1px solid #ddd;
+     }
+
+     .stat-card {
+         display: none !important;
+     }
+
+     #entryForm,
+     #budgetForm,
+     #exportCard,
+     #entryCard,
+     #budgetCard {
+         display: none !important;
+     }
+
+     #expenseChart {
+         display: none !important;
+     }
+
+     .chart-container-print {
+         display: none !important;
+     }
+
+     .table-custom th,
+     .table-custom td {
+         font-size: 12px;
+         padding: 8px;
+     }
+
+     .print-header {
+         display: block !important;
+         text-align: center;
+         margin-bottom: 20px;
+     }
+
+     .print-header h2 {
+         margin: 0;
+         font-size: 18px;
+     }
+
+     .print-header p {
+         margin: 5px 0;
+         font-size: 12px;
+         color: #666;
+     }
+ }
+
+ .print-header {
+     display: none;
+ }
+
+ .modal-content {
+     border-radius: 16px;
+     border: none;
+ }
+
+ .modal-header {
+     border-bottom: 1px solid #e2e8f0;
+     padding: 20px 24px;
+ }
+
+ .modal-body {
+     padding: 24px;
+ }
+
+ .modal-footer {
+     border-top: 1px solid #e2e8f0;
+     padding: 16px 24px;
+ }
