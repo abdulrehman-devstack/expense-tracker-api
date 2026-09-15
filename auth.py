@@ -5,7 +5,7 @@ import models
 import schemas
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"], redirect_slashes=False)
 
 
 def hash_password(password: str) -> str:
@@ -28,7 +28,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 @router.post(
-    "/register",
+    "/register/",
     response_model=schemas.UserResponse,
     status_code=status.HTTP_201_CREATED,
 )
@@ -52,7 +52,7 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post(
-    "/login",
+    "/login/",
     response_model=schemas.UserResponse,
     status_code=status.HTTP_200_OK,
 )

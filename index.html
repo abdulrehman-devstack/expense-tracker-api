@@ -655,14 +655,13 @@
         const alertBox = document.getElementById('authAlert');
         if (alertBox) alertBox.classList.add('d-none');
 
-        // Dynamic endpoint allocation based on isSignUpMode state
-        let targetEndpoint = isSignUpMode ? '/auth/register' : '/auth/login';
+       let targetEndpoint = isSignUpMode ? '/auth/register/' : '/auth/login/';
 
         try {
             let userObj = null;
 
-            // Both endpoints expect schemas.UserCreate -> JSON payload: {email, password}
-            const res = await fetch(`${API_BASE_URL}${targetEndpoint}`, {
+            // Direct string layout matching bina dynamic concatenation issues ke
+            const res = await fetch(API_BASE_URL + targetEndpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
