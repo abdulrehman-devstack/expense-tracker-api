@@ -125,7 +125,7 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db)):
     return {"message": "Deleted successfully"}
 
 
-# ============ EXCEL & PDF EXPORT ENDPOINTS ============
+
 @app.get("/expenses/report/excel")
 def export_expenses_excel(user_id: int, db: Session = Depends(get_db)):
     expenses = db.query(Expense).filter(Expense.user_id == user_id).all()
@@ -179,7 +179,7 @@ def export_expenses_pdf(user_id: int, db: Session = Depends(get_db)):
     return StreamingResponse(buffer, headers=headers, media_type='application/pdf')
 
 
-# ============ INCOMES ENDPOINTS ============
+
 @app.get("/incomes/")
 def get_incomes(user_id: int, db: Session = Depends(get_db)):
     return db.query(Income).filter(Income.user_id == user_id).all()
@@ -222,7 +222,7 @@ def delete_income(income_id: int, db: Session = Depends(get_db)):
     return {"message": "Deleted successfully"}
 
 
-# ============ BUDGETS ENDPOINTS ============
+
 @app.get("/budgets/")
 def get_budgets(user_id: int, db: Session = Depends(get_db)):
     return db.query(Budget).filter(Budget.user_id == user_id).all()

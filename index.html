@@ -632,7 +632,7 @@
             }
         }
 
-       // AUTH FORM SUBMIT - Aligned with /auth/ endpoints
+      // Complete Working Auth Handler
         document.getElementById('authForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const email = document.getElementById('authEmail').value.trim();
@@ -643,32 +643,32 @@
             try {
                 let userObj = null;
                 if (isSignUpMode) {
-                    // Updated route to /auth/register and payload to email + password
+                    // Sign Up Endpoint
                     const res = await fetch(`${API_BASE_URL}/auth/register`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email, password })
                     });
 
-                    if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.detail || "Registration failed");
-                    }
-                    userObj = await res.json();
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.detail || "Registration failed");
+                    userObj = data;
                     showToast("🎉 Account created successfully!", "success");
                 } else {
-                    // Updated route to /auth/login
+                    // Login Endpoint (OAuth2 Form Data Format)
+                    const formData = new URLSearchParams();
+                    formData.append('username', email);
+                    formData.append('password', password);
+
                     const res = await fetch(`${API_BASE_URL}/auth/login`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: formData
                     });
 
-                    if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.detail || "Invalid email or password!");
-                    }
-                    userObj = await res.json();
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.detail || "Invalid email or password!");
+                    userObj = data;
                     showToast("🔑 Logged in successfully!", "success");
                 }
 
