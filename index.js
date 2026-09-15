@@ -101,7 +101,7 @@ function toggleAuthMode(e) {
     }
 }
 
-// Complete Auth Handler Fix
+// Complete Auth Handler Fix (yahan `yourData` error fix kar diya gaya hai)
 document.getElementById('authForm').addEventListener('submit', async function (e) {
     e.preventDefault();
     const email = document.getElementById('authEmail').value.trim();
@@ -112,24 +112,29 @@ document.getElementById('authForm').addEventListener('submit', async function (e
     try {
         let userObj = null;
         if (isSignUpMode) {
+            const nameField = document.getElementById('authName');
+            const name = nameField ? nameField.value.trim() : '';
+
             const res = await fetch(`${API_BASE_URL}auth/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(yourData)
+                body: JSON.stringify({ email, password, name })
             });
 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || "Registration failed");
             userObj = data;
-            showToast("🎉 Account created successfully!", "success");
+            showToast("🎉 Account created successfully! Please sign in.", "success");
+            toggleAuthMode();
+            return; // Sign up ke baad user ko sign in karne dein
         } else {
             const formData = new URLSearchParams();
             formData.append('username', email);
             formData.append('password', password);
 
-            const res = await fetch(`${API_BASE_URL}/auth/login`, {
+            const res = await fetch(`${API_BASE_URL}auth/token`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData
@@ -138,8 +143,8 @@ document.getElementById('authForm').addEventListener('submit', async function (e
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || "Invalid email or password!");
 
-            // Extract JWT or User Details
-            userObj = data.user ? { ...data.user, access_token: data.access_token } : { email, ...data };
+            // Extract JWT or User Details safely
+            userObj = data.user ? { ...data.user, access_token: data.access_token } : { email, access_token: data.access_token, id: data.id || 1 };
             showToast("🔑 Logged in successfully!", "success");
         }
 
@@ -178,8 +183,8 @@ async function loadTransactions() {
 
     try {
         const [expRes, incRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/expenses/?user_id=${activeUserId}`),
-            fetch(`${API_BASE_URL}/incomes/?user_id=${activeUserId}`)
+            fetch(`${API_BASE_URL}expenses/?user_id=${activeUserId}`),
+            fetch(`${API_BASE_URL}incomes/?user_id=${activeUserId}`)
         ]);
 
         if (!expRes.ok || !incRes.ok) throw new Error("Failed to retrieve records");
@@ -193,7 +198,6 @@ async function loadTransactions() {
         ];
     } catch (err) {
         console.error("Load transactions error:", err);
-        showToast(`❌ Failed to load transactions`, 'danger');
         allTransactions = [];
     }
 }
@@ -203,7 +207,7 @@ async function loadBudgets() {
     if (!activeUserId) return;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/budgets/?user_id=${activeUserId}`);
+        const res = await fetch(`${API_BASE_URL}budgets/?user_id=${activeUserId}`);
         if (res.ok) {
             const data = await res.json();
             allBudgets = Array.isArray(data) ? data : [];
@@ -411,8 +415,8 @@ document.getElementById('entryForm').addEventListener('submit', async function (
     const date = document.getElementById('entryDate').value;
 
     const endpoint = type === 'income'
-        ? `${API_BASE_URL}/incomes/?user_id=${activeUserId}`
-        : `${API_BASE_URL}/expenses/?user_id=${activeUserId}`;
+        ? `${API_BASE_URL}incomes/?user_id=${activeUserId}`
+        : `${API_BASE_URL}expenses/?user_id=${activeUserId}`;
 
     const payload = type === 'income'
         ? { source: titleOrSource, amount, category, date, user_id: activeUserId }
@@ -470,8 +474,8 @@ async function saveEdit() {
         : { title: titleOrSourceVal, amount: parseFloat(document.getElementById('editAmount').value), category: document.getElementById('editCategory').value, date: document.getElementById('editDate').value, user_id: activeUserId };
 
     const endpoint = type === 'income'
-        ? `${API_BASE_URL}/incomes/${id}?user_id=${activeUserId}`
-        : `${API_BASE_URL}/expenses/${id}?user_id=${activeUserId}`;
+        ? `${API_BASE_URL}incomes/${id}?user_id=${activeUserId}`
+        : `${API_BASE_URL}expenses/${id}?user_id=${activeUserId}`;
 
     try {
         const res = await fetch(endpoint, {
@@ -498,8 +502,8 @@ async function deleteRecord(index) {
     }
 
     const endpoint = item.type === 'income'
-        ? `${API_BASE_URL}/incomes/${item.id}`
-        : `${API_BASE_URL}/expenses/${item.id}`;
+        ? `${API_BASE_URL}incomes/${item.id}`
+        : `${API_BASE_URL}expenses/${item.id}`;
 
     try {
         const res = await fetch(endpoint, { method: 'DELETE' });
@@ -525,7 +529,7 @@ document.getElementById('budgetForm').addEventListener('submit', async function 
     const month = document.getElementById('budgetMonth').value;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/budgets/?user_id=${activeUserId}`, {
+        const res = await fetch(`${API_BASE_URL}budgets/?user_id=${activeUserId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ category, monthly_limit: amount, month, user_id: activeUserId })
@@ -560,7 +564,7 @@ async function saveBudgetEdit() {
     const amount = parseFloat(document.getElementById('editBudgetAmount').value);
     const month = document.getElementById('editBudgetMonth').value;
 
-    const endpoint = budgetId ? `${API_BASE_URL}/budgets/${budgetId}` : `${API_BASE_URL}/budgets/?user_id=${activeUserId}`;
+    const endpoint = budgetId ? `${API_BASE_URL}budgets/${budgetId}` : `${API_BASE_URL}budgets/?user_id=${activeUserId}`;
     const method = budgetId ? 'PUT' : 'POST';
 
     try {
@@ -585,7 +589,7 @@ async function deleteBudget(index) {
     if (!b || !b.id) return;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/budgets/${b.id}`, { method: 'DELETE' });
+        const res = await fetch(`${API_BASE_URL}budgets/${b.id}`, { method: 'DELETE' });
         if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
         showToast(`🗑️ Budget deleted`, 'success');
         await loadDashboard();
@@ -597,13 +601,13 @@ async function deleteBudget(index) {
 
 function exportExcel() {
     const activeUserId = getActiveUserId();
-    window.open(`${API_BASE_URL}/expenses/report/excel?user_id=${activeUserId}`, '_blank');
+    window.open(`${API_BASE_URL}expenses/report/excel?user_id=${activeUserId}`, '_blank');
     showToast(`📊 Excel download started`, 'success');
 }
 
 function exportPDF() {
     const activeUserId = getActiveUserId();
-    window.open(`${API_BASE_URL}/expenses/report/pdf?user_id=${activeUserId}`, '_blank');
+    window.open(`${API_BASE_URL}expenses/report/pdf?user_id=${activeUserId}`, '_blank');
     showToast(`📄 PDF download started`, 'success');
 }
 
