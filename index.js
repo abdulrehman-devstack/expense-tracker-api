@@ -569,10 +569,10 @@ async function saveBudgetEdit() {
     const method = budgetId ? 'PUT' : 'POST';
 
     try {
-        const res = await fetch(endpoint, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ category, monthly_limit: amount, month, user_id: activeUserId })
+        const res = await fetch(`${API_BASE_URL}auth/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
         });
         if (!res.ok) throw new Error(`Budget update failed: ${res.status}`);
         showToast(`✅ Budget updated`, 'success');
