@@ -10,10 +10,7 @@ SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "")
 
 
 def send_budget_alert(to_email: str, category: str, limit: float, total_spent: float):
-    """
-    Jab budget exceed ho jaye, user ko email alert bhejo.
-    Gmail App Password chahiye .env mein.
-    """
+  
     if not SENDER_EMAIL or not SENDER_PASSWORD:
         print("⚠️  Email not sent: SENDER_EMAIL or SENDER_PASSWORD missing in .env")
         return
@@ -27,12 +24,10 @@ Hi,
 
 You have EXCEEDED your monthly budget limit.
 
-━━━━━━━━━━━━━━━━━━━━━━━
   Category    : {category}
   Budget Limit: ${limit:.2f}
   Total Spent : ${total_spent:.2f}
   Over Budget : ${total_spent - limit:.2f}
-━━━━━━━━━━━━━━━━━━━━━━━
 
 Please review your expenses and adjust your spending.
 

@@ -19,14 +19,10 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key-in-env")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
-
-# ============================================================
-# PASSWORD HELPERS
-# ============================================================
 def hash_password(password: str) -> str:
     pwd_bytes = password.encode("utf-8")
     salt = bcrypt.gensalt()
@@ -42,10 +38,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     except Exception:
         return False
 
-
-# ============================================================
-# JWT HELPERS
-# ============================================================
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
@@ -63,10 +55,6 @@ def decode_token(token: str) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-
-# ============================================================
-# DEPENDENCY: Get current user from JWT
-# ============================================================
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -81,10 +69,6 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
-
-# ============================================================
-# ROUTES
-# ============================================================
 
 # ---------- REGISTER ----------
 @router.post(
@@ -107,7 +91,6 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return new_user
 
 
-# ---------- LOGIN (Swagger Authorize button ke liye — FORM based) ----------
 @router.post("/login", response_model=schemas.Token)
 def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(),
@@ -123,7 +106,6 @@ def login_user(
     return {"access_token": token, "token_type": "bearer"}
 
 
-# ---------- LOGIN JSON (Frontend ke liye — JSON body) ----------
 @router.post("/login-json", response_model=schemas.Token)
 def login_user_json(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
@@ -134,7 +116,6 @@ def login_user_json(user: schemas.UserLogin, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer"}
 
 
-# ---------- ME (current logged-in user) ----------
 @router.get("/me", response_model=schemas.UserResponse)
 def get_me(current_user: models.User = Depends(get_current_user)):
     return current_user

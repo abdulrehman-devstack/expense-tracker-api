@@ -87,7 +87,6 @@ def create_expense(
     db.commit()
     db.refresh(new_expense)
 
-    # Budget check (current month only)
     budget = db.query(Budget).filter(
         Budget.user_id == current_user.id,
         Budget.category == expense.category,
