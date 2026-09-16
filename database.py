@@ -5,7 +5,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "expense_tracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///expense_tracker.db")
 
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
