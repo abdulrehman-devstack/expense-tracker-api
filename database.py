@@ -12,7 +12,7 @@ if DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 engine = create_engine(
-    "sqlite:///expense_tracker.db" echo=True
+    "sqlite:///expense_tracker.db", echo=True
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
