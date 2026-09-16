@@ -28,7 +28,6 @@ from email_utils import send_budget_alert
 import auth
 import schemas
 
-# Create tables automatically on startup
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Expense Tracker API", version="1.0.0")
@@ -41,13 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Auth router (register, login, me)
 app.include_router(auth.router)
 
-
-# ============================================================
-# FRONTEND ROUTES — Serve HTML files from project root
-# ============================================================
 @app.get("/", include_in_schema=False)
 def serve_login():
     return FileResponse("index.html")
@@ -67,10 +61,6 @@ def serve_css():
 def serve_js():
     return FileResponse("app.js", media_type="application/javascript")
 
-
-# ============================================================
-# EXPENSES CRUD
-# ============================================================
 @app.get("/expenses/", response_model=List[schemas.ExpenseResponse])
 def get_expenses(
     current_user: User = Depends(auth.get_current_user),
@@ -164,10 +154,6 @@ def delete_expense(
     db.commit()
     return {"message": "Deleted successfully"}
 
-
-# ============================================================
-# EXPORT: EXCEL
-# ============================================================
 @app.get("/expenses/report/excel")
 def export_expenses_excel(
     current_user: User = Depends(auth.get_current_user),
@@ -201,10 +187,6 @@ def export_expenses_excel(
         headers={"Content-Disposition": 'attachment; filename="Expense_Report.xlsx"'},
     )
 
-
-# ============================================================
-# EXPORT: PDF (ReportLab)
-# ============================================================
 @app.get("/expenses/report/pdf")
 def export_expenses_pdf(
     current_user: User = Depends(auth.get_current_user),
@@ -271,10 +253,6 @@ def export_expenses_pdf(
         headers={"Content-Disposition": 'attachment; filename="Expense_Report.pdf"'},
     )
 
-
-# ============================================================
-# INCOMES CRUD
-# ============================================================
 @app.get("/incomes/", response_model=List[schemas.IncomeResponse])
 def get_incomes(
     current_user: User = Depends(auth.get_current_user),
@@ -341,10 +319,6 @@ def delete_income(
     db.commit()
     return {"message": "Deleted successfully"}
 
-
-# ============================================================
-# BUDGETS
-# ============================================================
 @app.get("/budgets/", response_model=List[schemas.BudgetResponse])
 def get_budgets(
     current_user: User = Depends(auth.get_current_user),
@@ -397,10 +371,6 @@ def delete_budget(
     db.commit()
     return {"message": "Deleted successfully"}
 
-
-# ============================================================
-# ANALYTICS / SUMMARY
-# ============================================================
 @app.get("/analytics/summary", response_model=schemas.AnalyticsResponse)
 def get_summary(
     current_user: User = Depends(auth.get_current_user),

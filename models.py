@@ -11,7 +11,6 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    # Relationships — jab user delete ho, ye bhi delete ho jayein
     expenses = relationship("Expense", back_populates="owner", cascade="all, delete-orphan")
     incomes = relationship("Income", back_populates="owner", cascade="all, delete-orphan")
     budgets = relationship("Budget", back_populates="owner", cascade="all, delete-orphan")

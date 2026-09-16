@@ -1,6 +1,4 @@
-/* ============================================================
-   RESET & BASE
-   ============================================================ */
+
 * {
     margin: 0;
     padding: 0;
@@ -32,9 +30,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* ============================================================
-   AUTH PAGE
-   ============================================================ */
+
 .auth-body {
     min-height: 100vh;
     display: flex;
@@ -93,7 +89,6 @@ body {
     color: var(--gray);
 }
 
-/* Tabs */
 .auth-tabs {
     display: flex;
     background: var(--light);
@@ -122,7 +117,6 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Forms */
 .auth-form {
     display: none;
 }
@@ -179,9 +173,6 @@ body {
     margin-top: 20px;
 }
 
-/* ============================================================
-   BUTTONS
-   ============================================================ */
 .btn-primary,
 .btn-secondary,
 .btn-logout {
@@ -230,9 +221,6 @@ body {
     background: #dc2626;
 }
 
-/* ============================================================
-   FORM MESSAGES
-   ============================================================ */
 .form-message {
     margin-top: 12px;
     font-size: 13px;
@@ -248,16 +236,12 @@ body {
     color: var(--success);
 }
 
-/* ============================================================
-   DASHBOARD LAYOUT
-   ============================================================ */
 .dash-body {
     display: flex;
     min-height: 100vh;
     background: var(--light);
 }
 
-/* SIDEBAR */
 .sidebar {
     width: 260px;
     background: var(--dark);
@@ -326,7 +310,6 @@ body {
     font-size: 18px;
 }
 
-/* MAIN AREA */
 .main-area {
     flex: 1;
     margin-left: 260px;
@@ -361,7 +344,6 @@ body {
     font-weight: 500;
 }
 
-/* SECTIONS */
 .section {
     display: none;
 }
@@ -371,9 +353,6 @@ body {
     animation: fadeIn 0.3s ease;
 }
 
-/* ============================================================
-   STAT CARDS
-   ============================================================ */
 .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -410,9 +389,6 @@ body {
     color: var(--dark);
 }
 
-/* ============================================================
-   PANELS
-   ============================================================ */
 .panel {
     background: var(--white);
     border-radius: 16px;
@@ -435,9 +411,6 @@ body {
     margin-bottom: 16px;
 }
 
-/* ============================================================
-   INLINE FORM (Add Expense etc.)
-   ============================================================ */
 .inline-form {
     display: flex;
     flex-wrap: wrap;
@@ -469,9 +442,6 @@ body {
     padding: 10px 24px;
 }
 
-/* ============================================================
-   TABLES
-   ============================================================ */
 .table-wrap {
     overflow-x: auto;
     border-radius: 10px;
@@ -533,9 +503,6 @@ body {
     color: white;
 }
 
-/* ============================================================
-   REPORTS
-   ============================================================ */
 .report-buttons {
     display: flex;
     gap: 12px;
@@ -548,18 +515,13 @@ body {
     margin-top: 0;
 }
 
-/* ============================================================
-   CHART
-   ============================================================ */
+
 .chart-wrap {
     position: relative;
     height: 320px;
     padding: 10px;
 }
 
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
 @media (max-width: 768px) {
     .sidebar {
         width: 70px;

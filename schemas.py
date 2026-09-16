@@ -2,10 +2,6 @@ from datetime import date
 from typing import Dict, Optional
 from pydantic import BaseModel, EmailStr, Field
 
-
-# ============================================================
-# USER SCHEMAS
-# ============================================================
 class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6)
@@ -28,10 +24,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-
-# ============================================================
-# EXPENSE SCHEMAS
-# ============================================================
 class ExpenseBase(BaseModel):
     title: str = Field(default="Untitled")
     amount: float = Field(..., gt=0)
@@ -51,10 +43,6 @@ class ExpenseResponse(ExpenseBase):
     class Config:
         from_attributes = True
 
-
-# ============================================================
-# INCOME SCHEMAS
-# ============================================================
 class IncomeBase(BaseModel):
     amount: float = Field(..., gt=0)
     source: str
@@ -73,10 +61,6 @@ class IncomeResponse(IncomeBase):
     class Config:
         from_attributes = True
 
-
-# ============================================================
-# BUDGET SCHEMAS
-# ============================================================
 class BudgetBase(BaseModel):
     category: str
     monthly_limit: float = Field(..., gt=0)
@@ -93,10 +77,6 @@ class BudgetResponse(BudgetBase):
     class Config:
         from_attributes = True
 
-
-# ============================================================
-# ANALYTICS
-# ============================================================
 class AnalyticsResponse(BaseModel):
     total_spent: float
     total_income: float

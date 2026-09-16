@@ -1,14 +1,7 @@
-// ============================================================
-// CONFIG
-// ============================================================
-const API = "http://127.0.0.1:8001";  // Same origin — koi URL nahi chahiye
+const API = "";  
 const TOKEN_KEY = "expense_tracker_token";
 let analyticsChartInstance = null;
 
-
-// ============================================================
-// HELPERS
-// ============================================================
 function getToken() {
     return localStorage.getItem(TOKEN_KEY);
 }
@@ -40,7 +33,6 @@ function showMessage(el, text, type = "error") {
 async function apiCall(url, options = {}) {
     const res = await fetch(API + url, options);
     if (res.status === 401) {
-        // Token invalid/expired
         clearToken();
         showAuthPage();
         throw new Error("Session expired. Please login again.");
@@ -48,10 +40,6 @@ async function apiCall(url, options = {}) {
     return res;
 }
 
-
-// ============================================================
-// PAGE SWITCHING (Auth vs Dashboard)
-// ============================================================
 function showAuthPage() {
     document.getElementById("authPage").style.display = "flex";
     document.getElementById("dashboardPage").style.display = "none";
@@ -64,10 +52,6 @@ function showDashboardPage() {
     loadAllData();
 }
 
-
-// ============================================================
-// INIT
-// ============================================================
 document.addEventListener("DOMContentLoaded", () => {
     const token = getToken();
     if (token) {
@@ -83,10 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setupReports();
 });
 
-
-// ============================================================
-// AUTH TABS (Login / Register)
-// ============================================================
 function setupAuthTabs() {
     document.querySelectorAll(".auth-tab").forEach(tab => {
         tab.addEventListener("click", () => {
@@ -99,10 +79,6 @@ function setupAuthTabs() {
     });
 }
 
-
-// ============================================================
-// AUTH FORMS
-// ============================================================
 function setupAuthForms() {
     // LOGIN
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -132,7 +108,6 @@ function setupAuthForms() {
         }
     });
 
-    // REGISTER
     document.getElementById("registerForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("registerMessage");
@@ -165,10 +140,6 @@ function setupAuthForms() {
     });
 }
 
-
-// ============================================================
-// SIDEBAR NAV
-// ============================================================
 function setupSidebar() {
     document.querySelectorAll(".nav-item").forEach(item => {
         item.addEventListener("click", (e) => {
@@ -191,16 +162,12 @@ function setupSidebar() {
             };
             document.getElementById("pageTitle").textContent = titles[section] || "Dashboard";
 
-            // Reload data when entering sections
             if (section === "analytics") loadAnalytics();
         });
     });
 }
 
 
-// ============================================================
-// LOGOUT
-// ============================================================
 function setupLogout() {
     document.getElementById("logoutBtn").addEventListener("click", () => {
         clearToken();
@@ -212,9 +179,7 @@ function setupLogout() {
 }
 
 
-// ============================================================
-// LOAD USER INFO
-// ============================================================
+
 async function loadUserInfo() {
     try {
         const res = await apiCall("/auth/me", { headers: authHeaders() });
@@ -227,10 +192,6 @@ async function loadUserInfo() {
     }
 }
 
-
-// ============================================================
-// LOAD ALL DATA
-// ============================================================
 async function loadAllData() {
     await Promise.all([
         loadSummary(),
@@ -241,9 +202,7 @@ async function loadAllData() {
 }
 
 
-// ============================================================
-// SUMMARY (Dashboard)
-// ============================================================
+
 async function loadSummary() {
     try {
         const res = await apiCall("/analytics/summary", { headers: authHeaders() });
@@ -259,10 +218,6 @@ async function loadSummary() {
     }
 }
 
-
-// ============================================================
-// EXPENSES
-// ============================================================
 async function loadExpenses() {
     try {
         const res = await apiCall("/expenses/", { headers: authHeaders() });
@@ -287,7 +242,6 @@ async function loadExpenses() {
             `).join("");
         }
 
-        // Recent expenses (dashboard)
         const recentBody = document.getElementById("recentExpensesBody");
         const recent = expenses.slice(0, 5);
         if (recent.length === 0) {
@@ -322,9 +276,7 @@ async function deleteExpense(id) {
     }
 }
 
-// ============================================================
-// INCOMES
-// ============================================================
+
 async function loadIncomes() {
     try {
         const res = await apiCall("/incomes/", { headers: authHeaders() });
@@ -364,10 +316,6 @@ async function deleteIncome(id) {
     }
 }
 
-
-// ============================================================
-// BUDGETS
-// ============================================================
 async function loadBudgets() {
     try {
         const res = await apiCall("/budgets/", { headers: authHeaders() });
@@ -406,9 +354,7 @@ async function deleteBudget(id) {
 }
 
 
-// ============================================================
-// FORMS (Add Expense / Income / Budget)
-// ============================================================
+
 function setupForms() {
     // ADD EXPENSE
     document.getElementById("expenseForm").addEventListener("submit", async (e) => {
@@ -443,7 +389,6 @@ function setupForms() {
         }
     });
 
-    // ADD INCOME
     document.getElementById("incomeForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("incomeMsg");
@@ -475,7 +420,6 @@ function setupForms() {
         }
     });
 
-    // ADD BUDGET
     document.getElementById("budgetForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const msg = document.getElementById("budgetMsg");
@@ -505,16 +449,11 @@ function setupForms() {
         }
     });
 
-    // Set today's date as default in date inputs
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("expDate").value = today;
     document.getElementById("incDate").value = today;
 }
 
-
-// ============================================================
-// REPORTS (PDF / Excel)
-// ============================================================
 function setupReports() {
     document.getElementById("downloadPdfBtn").addEventListener("click", () => downloadReport("pdf"));
     document.getElementById("downloadExcelBtn").addEventListener("click", () => downloadReport("excel"));
@@ -546,9 +485,6 @@ async function downloadReport(type) {
 }
 
 
-// ============================================================
-// ANALYTICS (Chart.js)
-// ============================================================
 async function loadAnalytics() {
     try {
         const res = await apiCall("/analytics/summary", { headers: authHeaders() });
