@@ -1,4 +1,4 @@
-const API = "http://127.0.0.1:8001";  
+const API = "";
 const TOKEN_KEY = "expense_tracker_token";
 let analyticsChartInstance = null;
 
@@ -15,6 +15,7 @@ function clearToken() {
 }
 
 function authHeaders() {
+    
     return {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${getToken()}`,
