@@ -44,7 +44,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-
 def decode_token(token: str) -> dict:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -70,7 +69,6 @@ def get_current_user(
     return user
 
 
-# ---------- REGISTER ----------
 @router.post(
     "/register",
     response_model=schemas.UserResponse,
