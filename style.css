@@ -522,6 +522,8 @@ body {
     padding: 10px;
 }
 
+/* ressponsiveness  */
+
 @media (max-width: 768px) {
     .sidebar {
         width: 70px;
@@ -569,5 +571,95 @@ body {
 
     .inline-form input {
         width: 100%;
+    }
+}
+
+
+
+@media screen and (max-width: 992px) {
+
+    .dash-body {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-height: auto;
+        padding: 1rem;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .nav-item {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+    }
+
+    .main-area {
+        padding: 1rem;
+    }
+
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+@media screen and (max-width: 600px) {
+
+    .auth-card {
+        padding: 1.5rem;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .topbar-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .cards-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .inline-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .inline-form input,
+    .inline-form button {
+        width: 100%;
+    }
+
+    .report-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .report-buttons button {
+        width: 100%;
+    }
+
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+        min-width: 500px;
     }
 }
