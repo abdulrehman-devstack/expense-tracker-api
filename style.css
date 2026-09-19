@@ -516,10 +516,13 @@ body {
 }
 
 
-.chart-wrap {
+chart-wrap {
     position: relative;
     height: 320px;
-    padding: 10px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 /* ressponsiveness  */
