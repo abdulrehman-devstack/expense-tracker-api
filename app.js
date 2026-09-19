@@ -129,7 +129,6 @@ function setupAuthForms() {
             }
 
             showMessage(msg, "Registered! Please login.", "success");
-            // Switch to login tab
             setTimeout(() => {
                 document.querySelector('[data-tab="login"]').click();
                 document.getElementById("loginEmail").value = email;
@@ -163,17 +162,18 @@ function setupSidebar() {
             };
             document.getElementById("pageTitle").textContent = titles[section] || "Dashboard";
 
-            if (section === "analytics") loadAnalytics();
+            if (section === "analytics") {
+                setTimeout(() => {
+                    loadAnalytics();
+                }, 50);
+            }
         });
     });
 }
-
-
 function setupLogout() {
     document.getElementById("logoutBtn").addEventListener("click", () => {
         clearToken();
         showAuthPage();
-        // Clear forms
         document.getElementById("loginForm").reset();
         document.getElementById("registerForm").reset();
     });
@@ -225,7 +225,6 @@ async function loadExpenses() {
         if (!res.ok) return;
         const expenses = await res.json();
 
-        // All expenses table
         const tbody = document.getElementById("expensesBody");
         if (expenses.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="empty">No expenses yet</td></tr>';
@@ -492,9 +491,8 @@ async function loadAnalytics() {
         if (!res.ok) return;
         const data = await res.json();
 
-        // ---- Table ----
         const tbody = document.getElementById("analyticsBody");
-        const entries = Object.entries(data.category_breakdown);
+        const entries = Object.entries(data.category_breakdown || {});
         if (entries.length === 0) {
             tbody.innerHTML = '<tr><td colspan="2" class="empty">No data yet</td></tr>';
         } else {
@@ -506,10 +504,9 @@ async function loadAnalytics() {
             `).join("");
         }
 
-        // ---- Chart ----
         const canvas = document.getElementById("analyticsChart");
+        if (!canvas) return;
 
-        // Destroy old chart
         if (analyticsChartInstance) {
             analyticsChartInstance.destroy();
             analyticsChartInstance = null;
@@ -517,44 +514,39 @@ async function loadAnalytics() {
 
         if (entries.length === 0) return;
 
-        // Force canvas size detect — thoda delay
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        analyticsChartInstance = new Chart(canvas, {
-            type: "doughnut",
-            data: {
-                labels: entries.map(([cat]) => cat),
-                datasets: [{
-                    data: entries.map(([, total]) => total),
-                    backgroundColor: [
-                        "#6366f1", "#10b981", "#f59e0b", "#ef4444",
-                        "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16",
-                        "#f97316", "#14b8a6"
-                    ],
-                    borderWidth: 2,
-                    borderColor: "#ffffff",
-                }],
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: "right",
-                        labels: { padding: 16, font: { size: 13 } },
+        requestAnimationFrame(() => {
+            analyticsChartInstance = new Chart(canvas, {
+                type: "doughnut",
+                data: {
+                    labels: entries.map(([cat]) => cat),
+                    datasets: [{
+                        data: entries.map(([, total]) => total),
+                        backgroundColor: [
+                            "#6366f1", "#10b981", "#f59e0b", "#ef4444",
+                            "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16",
+                            "#f97316", "#14b8a6"
+                        ],
+                        borderWidth: 2,
+                        borderColor: "#ffffff",
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "right",
+                            labels: { padding: 16, font: { size: 13 } },
+                        },
                     },
                 },
-            },
+            });
         });
     } catch (err) {
         console.error("Analytics error:", err);
     }
 }
 
-
-// ============================================================
-// UTIL: Escape HTML
-// ============================================================
 function escapeHtml(str) {
     if (!str) return "";
     return String(str)
