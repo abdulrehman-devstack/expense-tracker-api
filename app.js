@@ -520,14 +520,19 @@ async function loadAnalytics() {
                 data: {
                     labels: entries.map(([cat]) => cat),
                     datasets: [{
+                        label: "Total Spent",
                         data: entries.map(([, total]) => total),
                         backgroundColor: [
                             "#6366f1", "#10b981", "#f59e0b", "#ef4444",
                             "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16",
                             "#f97316", "#14b8a6"
                         ],
+                        borderColor: "#6366f1",
+                        backgroundColor: "rgba(99, 102, 241, 0.2)",
                         borderWidth: 2,
+                        fill: true,
                         borderColor: "#ffffff",
+                        pointRadius: 4
                     }],
                 },
                 options: {
