@@ -537,13 +537,7 @@ async function loadAnalytics() {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: "right",
-                            labels: { padding: 16, font: { size: 13 } },
-                        },
-                    },
+                    maintainAspectRatio: false
                 },
             });
         });
