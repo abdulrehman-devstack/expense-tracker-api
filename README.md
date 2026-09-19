@@ -85,12 +85,15 @@ expense-tracker-api/
 │
 ├── env/                 # Virtual environment
 ├── auth.py              # Authentication logic & token handling
-├── database.py          # Database connection & session setup
+├── database.py          #  Database connection & session setup
+├── style.css            # Frontend style and responsive
+├── index.html           #frontend design
 ├── email_utils.py       # SMTP email alert functions
 ├── main.py              # FastAPI app initialization & routing
 ├── models.py            # SQLAlchemy database models
 ├── schemas.py           # Pydantic data validation schemas
 ├── requirements.txt     # Project dependencies
+├──app.js                # Js for fetching backend
 └── README.md            # Project documentation
 
 8. Contributing
