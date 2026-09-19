@@ -516,7 +516,7 @@ async function loadAnalytics() {
 
         requestAnimationFrame(() => {
             analyticsChartInstance = new Chart(canvas, {
-                type: "Line",
+                type: "line",
                 data: {
                     labels: entries.map(([cat]) => cat),
                     datasets: [{
